@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#174f43" />
+    <meta
+      name="description"
+      content="Dix activités avec de vraies photos, pour partager un moment et stimuler la mémoire à son rythme."
+    />
+    <title>MémoirePartage — un moment ensemble</title>
+    <link rel="icon" href="assets/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="assets/icon-192.png" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="stylesheet" href="style.css" />
+    <script type="module" src="script.js"></script>
+  </head>
+  <body>
+    <a class="skip" href="#main">Aller au contenu</a>
+    <header class="site-header">
+      <button class="brand" id="brand" aria-label="MémoirePartage, accueil">
+        <span class="brand-mark" aria-hidden="true">m.</span
+        ><span>Mémoire<span class="brand-light">Partage</span></span>
+      </button>
+      <button class="quiet" id="caregiver">Espace aidant</button>
+    </header>
+    <main id="main" tabindex="-1">
+      <section id="home" aria-labelledby="home-title">
+        <div class="welcome">
+          <p class="eyebrow">Un moment pour vous, un moment ensemble</p>
+          <h1 id="home-title">La mémoire se partage.<br />À votre rythme.</h1>
+          <p>
+            Regarder, reconnaître, se souvenir.<br />Dix activités pour le
+            plaisir d’être ensemble.
+          </p>
+        </div>
+        <article class="featured">
+          <div class="featured-image">
+            <img
+              src="assets/photos/lac.jpg"
+              alt="Un lac entouré de montagnes"
+              width="640"
+              height="420"
+            /><span class="photo-label"
+              >De vraies photos. De vrais souvenirs.</span
+            >
+          </div>
+          <div class="featured-content">
+            <span class="pill">Pour commencer en douceur</span>
+            <h2>Et si on regardait<br />une photo ?</h2>
+            <p>
+              Un objet familier, un lieu aimé…<br />Prenez le temps d’en parler.
+            </p>
+            <button class="primary" id="start-photo">
+              Reconnaître une photo <span aria-hidden="true">→</span>
+            </button>
+          </div>
+        </article>
+        <div class="section-heading">
+          <h2>Envie de jouer ?</h2>
+          <p>Choisissez ce qui vous plaît aujourd’hui.</p>
+        </div>
+        <div id="game-grid" class="game-grid"></div>
+        <div class="home-note">
+          <p>
+            Sans chronomètre. Sans note. Vous pouvez vous arrêter à tout moment.
+          </p>
+          <p id="offline-state" role="status">
+            Préparation du mode hors connexion…
+          </p>
+          <button id="install" class="quiet" hidden>
+            Installer l’application
+          </button>
+        </div>
+      </section>
+      <section id="play" hidden aria-labelledby="game-title">
+        <div class="play-heading">
+          <button id="back-home" class="quiet">← Accueil</button>
+          <p id="game-progress"></p>
+        </div>
+        <p id="game-domain" class="eyebrow"></p>
+        <h1 id="game-title" tabindex="-1"></h1>
+        <p id="instruction" class="instruction"></p>
+        <div id="guide" class="guide" hidden>
+          Ensemble : lisez la consigne, regardez la photo et laissez tout le
+          temps nécessaire.
+        </div>
+        <div id="game-body" class="game-body"></div>
+        <div
+          id="feedback"
+          class="feedback"
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+        ></div>
+        <div id="next-area"></div>
+        <div class="game-tools">
+          <button id="hint" class="quiet">Un indice</button
+          ><button id="read" class="quiet">Lire la consigne</button
+          ><button id="pause" class="quiet">Faire une pause</button>
+        </div>
+      </section>
+      <section id="settings" hidden aria-labelledby="settings-title">
+        <button id="close-settings" class="quiet">← Accueil</button>
+        <p class="eyebrow">Un accompagnement qui vous ressemble</p>
+        <h1 id="settings-title" tabindex="-1">Espace aidant</h1>
+        <p>
+          Des réglages simples pour un moment agréable. Le profil est choisi par
+          vous ; il n’est jamais déduit des réponses.
+        </p>
+        <div class="settings-grid">
+          <section class="panel">
+            <h2>Le rythme des activités</h2>
+            <fieldset>
+              <legend>Profil d’accompagnement</legend>
+              <div id="stage-options" class="stack-options"></div>
+            </fieldset>
+            <p>
+              Les aides s’ajustent au fil du jeu, dans les limites du profil
+              choisi.
+            </p>
+            <fieldset>
+              <legend>Taille des caractères</legend>
+              <div id="font-options" class="segmented"></div>
+            </fieldset>
+            <div class="toggle-row">
+              <label for="sound">Son doux après une réponse</label
+              ><input id="sound" type="checkbox" />
+            </div>
+            <div class="toggle-row">
+              <label for="vibration">Vibration douce si disponible</label
+              ><input id="vibration" type="checkbox" />
+            </div>
+            <div class="toggle-row">
+              <label for="guidance">Afficher les conseils à l’aidant</label
+              ><input id="guidance" type="checkbox" />
+            </div>
+            <button id="reset-adaptation" class="quiet">
+              Remettre les aides au niveau initial
+            </button>
+            <p id="settings-status" role="status"></p>
+          </section>
+          <section class="panel">
+            <h2>Vos photos, vos souvenirs</h2>
+            <p>
+              Une photo du vrai lac, de votre jardin ou d’un proche est souvent
+              plus familière qu’une photo de démonstration.
+            </p>
+            <label class="primary upload-label" for="upload-photo"
+              >Ajouter des photos</label
+            ><input
+              id="upload-photo"
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              multiple
+            />
+            <p>Les fichiers restent dans ce navigateur, sur cet appareil.</p>
+            <div id="upload-status" role="status" aria-live="polite"></div>
+            <div id="personal-photos"></div>
+          </section>
+        </div>
+        <section class="panel">
+          <h2>Les moments partagés</h2>
+          <p id="session-count"></p>
+          <ul id="history" class="history"></ul>
+          <button id="export-backup" class="quiet">
+            Sauvegarder mes photos et réglages</button
+          ><label class="quiet upload-label" for="import-backup"
+            >Restaurer une sauvegarde</label
+          ><input
+            id="import-backup"
+            type="file"
+            accept="application/json,.json"
+          />
+          <p id="backup-status" role="status"></p>
+        </section>
+        <section class="panel about">
+          <h2>Un plaisir à partager</h2>
+          <p>
+            Commencez par une activité courte, dans un endroit calme. Aidez si
+            la personne le souhaite. En cas de fatigue ou d’inconfort, faites
+            une pause.
+          </p>
+          <p>
+            Au stade avancé, regarder une photo et en parler ensemble est déjà
+            un moment précieux. Il n’est pas nécessaire de trouver une réponse.
+          </p>
+          <p>
+            Ces activités de stimulation ne sont ni un test diagnostique ni un
+            traitement validé de la maladie d’Alzheimer. Aucun bénéfice clinique
+            n’est garanti.
+          </p>
+          <a href="README.md">Consulter les références et le guide complet</a>
+        </section>
+      </section>
+      <section id="done" class="done" hidden aria-labelledby="done-title">
+        <p class="eyebrow">Merci pour ce moment</p>
+        <h1 id="done-title" tabindex="-1">Un beau moment partagé.</h1>
+        <p>Vous avez pris le temps de regarder,<br />de jouer et d’échanger.</p>
+        <p id="done-message"></p>
+        <button id="replay" class="primary">Rejouer à cette activité</button
+        ><button id="done-home" class="quiet">
+          Choisir une autre activité
+        </button>
+      </section>
+      <noscript
+        ><p>
+          Activez JavaScript pour accéder aux activités. Vos données restent sur
+          votre appareil.
+        </p></noscript
+      >
+    </main>
+    <footer class="site-footer">
+      <span>MémoirePartage</span
+      ><span>Gratuit · sans publicité · à votre rythme</span
+      ><a href="https://github.com/burtouille-art/familles-images-alzheimer"
+        >Code et guide</a
+      >
+    </footer>
+  </body>
+</html>

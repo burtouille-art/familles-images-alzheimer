@@ -1,0 +1,668 @@
+import { GAMES, PHOTOS } from "./games/data.js";
+import {
+  PROFILES,
+  CATEGORIES,
+  getRules,
+  adapt,
+  shuffle,
+  escapeHTML,
+  button,
+} from "./games/core.js";
+import * as storage from "./store.js";
+import recognition from "./games/recognition.js";
+import memory from "./games/memory.js";
+import places from "./games/places.js";
+import sorting from "./games/sorting.js";
+import sequence from "./games/sequence.js";
+import sounds from "./games/sounds.js";
+import money from "./games/money.js";
+import puzzle from "./games/puzzle.js";
+import odd from "./games/odd.js";
+import recall from "./games/recall.js";
+const $ = (id) => document.getElementById(id);
+const activities = {
+  recognition,
+  memory,
+  places,
+  sorting,
+  sequence,
+  sounds,
+  money,
+  puzzle,
+  odd,
+  recall,
+};
+let prefs = storage.loadPreferences(),
+  personal = [],
+  rawPersonal = [],
+  urls = [],
+  active = null,
+  audio = null,
+  audioContext = null,
+  installPrompt = null;
+let hintHandler = null,
+  hadHelp = false,
+  hadDifficulty = false,
+  sessionToken = 0;
+const views = ["home", "play", "settings", "done"];
+function showView(name) {
+  stopAudio();
+  speechSynthesisSafeCancel();
+  views.forEach((id) => ($(id).hidden = id !== name));
+  $("main").focus();
+  window.scrollTo({ top: 0, behavior: "instant" });
+}
+function persist() {
+  if (!storage.savePreferences(prefs))
+    $("settings-status").textContent =
+      "Les réglages sont conservés pour cette visite seulement : le stockage du navigateur n’est pas disponible.";
+}
+function applyPreferences() {
+  document.documentElement.style.setProperty(
+    "--font-size-base",
+    `${prefs.font}px`,
+  );
+  document.body.classList.toggle("large-text", prefs.font > 24);
+  $("sound").checked = prefs.sound;
+  $("vibration").checked = prefs.vibration;
+  $("guidance").checked = prefs.guidance;
+}
+function stopAudio() {
+  if (audio) {
+    audio.pause();
+    audio.currentTime = 0;
+    audio = null;
+  }
+}
+function speechSynthesisSafeCancel() {
+  if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+}
+function say(text) {
+  if (!("speechSynthesis" in window)) {
+    $("feedback").textContent =
+      "La lecture vocale n’est pas disponible ici. La consigne reste affichée.";
+    return;
+  }
+  speechSynthesisSafeCancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = "fr-FR";
+  u.rate = 0.85;
+  u.volume = 0.55;
+  u.onerror = () => {
+    $("feedback").textContent =
+      "La lecture vocale n’est pas disponible actuellement. Regardons la consigne affichée.";
+  };
+  window.speechSynthesis.speak(u);
+}
+function reward() {
+  if (prefs.sound) {
+    try {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (AudioContext) {
+        audioContext ??= new AudioContext();
+        audioContext.resume();
+        const oscillator = audioContext.createOscillator(),
+          gain = audioContext.createGain();
+        oscillator.type = "sine";
+        oscillator.frequency.setValueAtTime(523, audioContext.currentTime);
+        gain.gain.setValueAtTime(0, audioContext.currentTime);
+        gain.gain.linearRampToValueAtTime(
+          0.035,
+          audioContext.currentTime + 0.03,
+        );
+        gain.gain.exponentialRampToValueAtTime(
+          0.0001,
+          audioContext.currentTime + 0.45,
+        );
+        oscillator.connect(gain);
+        gain.connect(audioContext.destination);
+        oscillator.start();
+        oscillator.stop(audioContext.currentTime + 0.5);
+      }
+    } catch {
+      /* Le retour visuel reste disponible. */
+    }
+  }
+  if (prefs.vibration && navigator.vibrate) navigator.vibrate(35);
+}
+function mark(kind) {
+  if (!active) return;
+  const key = `${prefs.stage}-${active.id}`;
+  prefs.adaptation[key] = adapt(prefs.adaptation[key], kind);
+  persist();
+}
+function markHelp() {
+  if (!hadHelp) {
+    hadHelp = true;
+    mark("help");
+  }
+}
+function setNext(handler, label = "Continuer tranquillement") {
+  const area = $("next-area");
+  area.replaceChildren();
+  if (handler) {
+    const token = sessionToken;
+    area.append(
+      button(
+        label,
+        () => {
+          if (token !== sessionToken) return;
+          stopAudio();
+          handler();
+        },
+        "primary",
+      ),
+    );
+  }
+}
+function home() {
+  sessionToken++;
+  active = null;
+  showView("home");
+}
+function startGame(id) {
+  const g = GAMES.find((g) => g.id === id);
+  if (!g) return;
+  sessionToken++;
+  active = g;
+  showView("play");
+  $("game-domain").textContent = g.domain;
+  const key = `${prefs.stage}-${id}`;
+  const ctx = {
+    stage: prefs.stage,
+    photos: [...personal.filter((p) => p.ready), ...PHOTOS],
+    body: $("game-body"),
+    get rules() {
+      return getRules(prefs.stage, prefs.adaptation[key]?.support || 0);
+    },
+    prioritize: (items) => [
+      ...shuffle(items.filter((p) => p.personal)),
+      ...shuffle(items.filter((p) => !p.personal)),
+    ],
+    prepare(title, instruction, index, total) {
+      stopAudio();
+      speechSynthesisSafeCancel();
+      hadHelp = false;
+      hadDifficulty = false;
+      hintHandler = null;
+      $("hint").disabled = false;
+      $("game-title").textContent = title;
+      $("instruction").textContent = instruction;
+      $("game-progress").textContent =
+        index && total ? `Étape ${index} sur ${total}` : "Tout votre temps";
+      $("guide").hidden = !(prefs.guidance || prefs.stage === "avance");
+      ctx.body.replaceChildren();
+      $("feedback").textContent = "";
+      setNext(null);
+      $("game-title").focus();
+    },
+    setHint(fn) {
+      hintHandler = fn;
+    },
+    markHelp,
+    reward,
+    setNext,
+    clearFeedback() {
+      $("feedback").textContent = "";
+    },
+    success(next) {
+      if (!hadHelp && !hadDifficulty) mark("success");
+      reward();
+      $("feedback").textContent = "Bravo ! C’est exact !";
+      setNext(next);
+    },
+    wrong(
+      extra = "Vous pouvez réessayer, autant de fois que vous le souhaitez.",
+    ) {
+      hadDifficulty = true;
+      mark("difficulty");
+      $("feedback").textContent = `Presque ! Regardons ensemble. ${extra}`;
+    },
+    async playAudio(src) {
+      stopAudio();
+      const token = sessionToken;
+      const a = new Audio(src);
+      audio = a;
+      a.volume = 0.35;
+      try {
+        await a.play();
+      } catch {
+        if (token === sessionToken)
+          $("feedback").textContent =
+            "Ce son ne peut pas être lu ici. Vous pouvez demander un indice ou choisir une autre activité.";
+      }
+    },
+    stopAudio,
+    complete() {
+      if (!active) return;
+      prefs.history.push({ game: active.id, date: Date.now() });
+      prefs.history = prefs.history.slice(-300);
+      persist();
+      showView("done");
+      $("done-message").textContent =
+        "Cette séance a été ajoutée aux moments partagés.";
+      $("done-title").focus();
+    },
+  };
+  activities[id](ctx);
+}
+$("hint").addEventListener("click", () => {
+  if (!hintHandler) return;
+  markHelp();
+  const message = hintHandler();
+  if (message) $("feedback").textContent = message;
+});
+$("read").addEventListener("click", () =>
+  say(`${$("game-title").textContent}. ${$("instruction").textContent}`),
+);
+for (const id of ["brand", "back-home", "pause", "close-settings", "done-home"])
+  $(id).addEventListener("click", home);
+$("replay").addEventListener("click", () => {
+  if (active) startGame(active.id);
+});
+$("start-photo").addEventListener("click", () => startGame("recognition"));
+function buildHome() {
+  const grid = $("game-grid");
+  for (const g of GAMES) {
+    const card = document.createElement("article");
+    card.className = "game-card";
+    card.innerHTML = `<img src="assets/photos/${g.cover}.jpg" alt="" loading="lazy" width="640" height="420"><div class="game-card-content"><h3>${g.title}</h3><p>${g.description}</p></div>`;
+    const b = button("Jouer", () => startGame(g.id));
+    b.setAttribute("aria-label", `Jouer à ${g.title}`);
+    const arrow = document.createElement("span");
+    arrow.textContent = "→";
+    arrow.setAttribute("aria-hidden", "true");
+    b.append(arrow);
+    card.lastElementChild.append(b);
+    grid.append(card);
+  }
+}
+function stageButtons() {
+  const wrap = $("stage-options");
+  wrap.replaceChildren();
+  const details = {
+    leger: "10 étapes, davantage de choix. Prendre son temps.",
+    modere: "6 étapes, 2 à 3 choix et des indices.",
+    avance: "3 étapes, 2 choix. Regarder et répondre ensemble.",
+  };
+  for (const [key, p] of Object.entries(PROFILES)) {
+    const b = button(p.label, () => {
+      prefs.stage = key;
+      if (key === "avance" && prefs.font < 28) prefs.font = 28;
+      persist();
+      applyPreferences();
+      stageButtons();
+      fontButtons();
+    });
+    b.setAttribute("aria-pressed", String(key === prefs.stage));
+    const detail = document.createElement("span");
+    detail.textContent = details[key];
+    b.append(detail);
+    wrap.append(b);
+  }
+}
+function fontButtons() {
+  const wrap = $("font-options");
+  wrap.replaceChildren();
+  for (const size of [24, 28, 32]) {
+    const b = button(`${size} px`, () => {
+      prefs.font = size;
+      persist();
+      applyPreferences();
+      fontButtons();
+    });
+    b.setAttribute("aria-pressed", String(size === prefs.font));
+    wrap.append(b);
+  }
+}
+for (const [id, key] of [
+  ["sound", "sound"],
+  ["vibration", "vibration"],
+  ["guidance", "guidance"],
+])
+  $(id).addEventListener("change", (e) => {
+    prefs[key] = e.target.checked;
+    persist();
+  });
+$("reset-adaptation").addEventListener("click", () => {
+  prefs.adaptation = {};
+  persist();
+  $("settings-status").textContent =
+    "Les aides sont revenues au niveau initial du profil choisi.";
+});
+async function refreshPersonal() {
+  const rows = await storage.listPhotos();
+  urls.forEach((u) => URL.revokeObjectURL(u));
+  urls = [];
+  rawPersonal = rows;
+  personal = rows.map((p) => {
+    const src = URL.createObjectURL(p.blob);
+    urls.push(src);
+    let sound = null;
+    if (p.audio) {
+      sound = URL.createObjectURL(p.audio);
+      urls.push(sound);
+    }
+    return { ...p, src, sound, personal: true };
+  });
+}
+async function settings() {
+  sessionToken++;
+  active = null;
+  showView("settings");
+  stageButtons();
+  fontButtons();
+  applyPreferences();
+  renderHistory();
+  $("settings-title").focus();
+  try {
+    await refreshPersonal();
+    renderPersonal();
+  } catch (e) {
+    $("upload-status").textContent = e.message;
+  }
+}
+$("caregiver").addEventListener("click", settings);
+function renderHistory() {
+  const list = $("history");
+  list.replaceChildren();
+  $("session-count").textContent =
+    `${prefs.history.length} séance${prefs.history.length > 1 ? "s" : ""} réalisée${prefs.history.length > 1 ? "s" : ""} sur cet appareil.`;
+  for (const s of [...prefs.history].reverse().slice(0, 12)) {
+    const g = GAMES.find((g) => g.id === s.game);
+    if (!g) continue;
+    const li = document.createElement("li");
+    li.textContent = `${new Date(s.date).toLocaleDateString("fr-FR", { day: "numeric", month: "long" })} — ${g.title}`;
+    list.append(li);
+  }
+}
+function renderPersonal() {
+  const wrap = $("personal-photos");
+  wrap.replaceChildren();
+  if (!personal.length) {
+    const p = document.createElement("p");
+    p.textContent =
+      "Aucune photo personnelle pour le moment. Les photos de démonstration sont déjà disponibles.";
+    wrap.append(p);
+    return;
+  }
+  for (const p of personal) {
+    const raw = rawPersonal.find((x) => x.id === p.id);
+    const editor = document.createElement("form");
+    editor.className = "personal-editor";
+    editor.innerHTML = `<img src="${p.src}" alt="Photo personnelle à personnaliser"><label>Nom à reconnaître<input type="text" name="name" maxlength="80" required value="${escapeHTML(p.name)}" placeholder="Le lac de notre village"></label><p>Pour une personne, indiquez le prénom ou le lien familial qui lui est familier.</p><fieldset><legend>Famille de la photo</legend><div class="category-options"></div></fieldset><label>Lieu associé (facultatif)<input type="text" name="place" maxlength="100" value="${escapeHTML(p.place)}" placeholder="Au lac de notre village"></label><label>Indice ou souvenir (facultatif)<textarea name="hint" maxlength="240" rows="3" placeholder="Nous y allions chaque été…">${escapeHTML(p.hint)}</textarea></label><label>Son associé (facultatif)<input type="file" name="audio" accept="audio/*"></label><p>${p.audio ? "Un son personnel est associé à cette photo." : "Un son de 5 Mo maximum peut accompagner la photo dans « À l’écoute »."}</p><div class="editor-actions"></div><p class="toast" role="status"></p>`;
+    let category = p.category;
+    let audioBlob = raw.audio || null;
+    const categoryWrap = editor.querySelector(".category-options");
+    function categories() {
+      categoryWrap.replaceChildren();
+      for (const c of CATEGORIES) {
+        const b = button(c, () => {
+          category = c;
+          categories();
+        });
+        b.setAttribute("aria-pressed", String(c === category));
+        categoryWrap.append(b);
+      }
+    }
+    categories();
+    const status = editor.querySelector(".toast");
+    editor.elements.audio.addEventListener("change", (e) => {
+      const f = e.target.files[0];
+      if (!f) return;
+      if (!f.type.startsWith("audio/") || f.size > 5 * 1024 * 1024) {
+        status.textContent = "Choisissez un fichier audio de moins de 5 Mo.";
+        e.target.value = "";
+        return;
+      }
+      audioBlob = f;
+      status.textContent = "Son prêt. Enregistrez la photo pour le conserver.";
+    });
+    const save = button("Enregistrer cette photo", () => {}, "primary");
+    save.type = "submit";
+    const remove = button(
+      "Supprimer cette photo",
+      async () => {
+        remove.disabled = true;
+        try {
+          await storage.deletePhoto(p.id);
+          await refreshPersonal();
+          renderPersonal();
+          $("upload-status").textContent = "Photo supprimée de cet appareil.";
+        } catch (e) {
+          status.textContent = e.message;
+          remove.disabled = false;
+        }
+      },
+      "quiet",
+    );
+    editor.querySelector(".editor-actions").append(save, remove);
+    if (audioBlob) {
+      editor.querySelector(".editor-actions").append(
+        button(
+          "Retirer le son",
+          () => {
+            audioBlob = null;
+            status.textContent =
+              "Son retiré. Enregistrez pour conserver ce changement.";
+          },
+          "quiet",
+        ),
+      );
+    }
+    editor.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const name = editor.elements.name.value.trim();
+      if (!name) {
+        status.textContent =
+          "Indiquez le nom de la photo avant de l’enregistrer.";
+        return;
+      }
+      save.disabled = true;
+      try {
+        await storage.putPhoto({
+          ...raw,
+          name,
+          category,
+          place: editor.elements.place.value.trim(),
+          hint: editor.elements.hint.value.trim(),
+          audio: audioBlob,
+          ready: true,
+        });
+        await refreshPersonal();
+        renderPersonal();
+        $("upload-status").textContent =
+          `Photo « ${name} » enregistrée. Elle sera utilisée en priorité.`;
+      } catch (e) {
+        status.textContent = e.message;
+        save.disabled = false;
+      }
+    });
+    wrap.append(editor);
+  }
+}
+$("upload-photo").addEventListener("change", async (e) => {
+  const files = [...e.target.files];
+  if (!files.length) return;
+  e.target.disabled = true;
+  let count = 0;
+  const errors = [];
+  for (const f of files) {
+    try {
+      const blob = await storage.preparePhoto(f);
+      await storage.putPhoto({
+        id: `custom-${crypto.randomUUID()}`,
+        name: "",
+        category: "Objets",
+        place: "",
+        hint: "",
+        blob,
+        audio: null,
+        ready: false,
+      });
+      count++;
+    } catch (error) {
+      errors.push(`${f.name} : ${error.message}`);
+    }
+  }
+  try {
+    await refreshPersonal();
+    renderPersonal();
+  } catch (error) {
+    errors.push(error.message);
+  }
+  $("upload-status").textContent =
+    `${count} photo${count > 1 ? "s" : ""} ajoutée${count > 1 ? "s" : ""}. Donnez un nom à chaque photo, puis enregistrez-la. ${errors.join(" ")}`;
+  e.target.value = "";
+  e.target.disabled = false;
+});
+$("export-backup").addEventListener("click", async () => {
+  const status = $("backup-status");
+  try {
+    const rows = await storage.listPhotos();
+    const photos = [];
+    for (const p of rows) {
+      photos.push({
+        id: p.id,
+        name: p.name,
+        category: p.category,
+        place: p.place,
+        hint: p.hint,
+        ready: p.ready,
+        image: await storage.toDataURL(p.blob),
+        audio: p.audio ? await storage.toDataURL(p.audio) : null,
+      });
+    }
+    const blob = new Blob(
+        [
+          JSON.stringify({
+            format: "memoire-partage",
+            version: 1,
+            preferences: prefs,
+            photos,
+          }),
+        ],
+        { type: "application/json" },
+      ),
+      url = URL.createObjectURL(blob),
+      a = document.createElement("a");
+    a.href = url;
+    a.download = `memoire-partage-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    status.textContent =
+      "Sauvegarde préparée. Gardez ce fichier privé : il contient vos photos et vos sons.";
+  } catch (e) {
+    status.textContent = e.message;
+  }
+});
+$("import-backup").addEventListener("change", async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const status = $("backup-status");
+  try {
+    if (file.size > 100 * 1024 * 1024)
+      throw new Error("Cette sauvegarde dépasse 100 Mo.");
+    const data = JSON.parse(await file.text());
+    if (
+      data.format !== "memoire-partage" ||
+      data.version !== 1 ||
+      !Array.isArray(data.photos) ||
+      data.photos.length > 200
+    )
+      throw new Error("Choisissez une sauvegarde MémoirePartage valide.");
+    const imported = data.photos.map((p) => {
+      if (
+        !p ||
+        typeof p.id !== "string" ||
+        !/^custom-[a-zA-Z0-9-]{1,80}$/.test(p.id) ||
+        typeof p.name !== "string" ||
+        p.name.length > 80 ||
+        !CATEGORIES.includes(p.category) ||
+        typeof p.place !== "string" ||
+        p.place.length > 100 ||
+        typeof p.hint !== "string" ||
+        p.hint.length > 240
+      )
+        throw new Error("Une photo de cette sauvegarde n’est pas valide.");
+      const blob = storage.dataURLToBlob(p.image, "image"),
+        audio = p.audio ? storage.dataURLToBlob(p.audio, "audio") : null;
+      if (audio && audio.size > 5 * 1024 * 1024)
+        throw new Error("Un son dépasse 5 Mo.");
+      return {
+        id: p.id,
+        name: p.name,
+        category: p.category,
+        place: p.place,
+        hint: p.hint,
+        ready: Boolean(p.ready && p.name.trim()),
+        blob,
+        audio,
+      };
+    });
+    await storage.putManyPhotos(imported);
+    prefs = storage.validatePreferences(data.preferences);
+    persist();
+    await refreshPersonal();
+    renderPersonal();
+    renderHistory();
+    stageButtons();
+    fontButtons();
+    applyPreferences();
+    status.textContent =
+      "Sauvegarde restaurée. Les photos déjà présentes avec le même identifiant ont été mises à jour.";
+  } catch (error) {
+    status.textContent =
+      error.message || "Impossible de lire cette sauvegarde.";
+  }
+  e.target.value = "";
+});
+buildHome();
+applyPreferences();
+refreshPersonal().catch(() => {
+  /* Les photos de démonstration restent disponibles. */
+});
+// Installation : le statut « prêt » n'apparaît qu'après le cache complet des médias.
+let offlineReady = false;
+function offlineStatus() {
+  if (offlineReady)
+    $("offline-state").textContent = navigator.onLine
+      ? "Prêt pour jouer sans connexion sur cet appareil."
+      : "Vous êtes hors connexion. Les activités restent disponibles.";
+}
+window.addEventListener("online", offlineStatus);
+window.addEventListener("offline", offlineStatus);
+if ("serviceWorker" in navigator && location.protocol !== "file:") {
+  navigator.serviceWorker
+    .register("./sw.js")
+    .then(async (initialRegistration) => {
+      const worker = initialRegistration.installing;
+      if (worker)
+        worker.addEventListener("statechange", () => {
+          if (worker.state === "redundant" && !offlineReady) {
+            $("offline-state").textContent =
+              "Le téléchargement hors connexion a été interrompu. Rechargez l’application avec une connexion pour réessayer.";
+          }
+        });
+      const registration = await navigator.serviceWorker.ready;
+      offlineReady = Boolean(registration.active);
+      offlineStatus();
+    })
+    .catch(() => {
+      $("offline-state").textContent =
+        "Le mode hors connexion n’a pas pu être préparé. Rechargez l’application avec une connexion.";
+    });
+} else
+  $("offline-state").textContent =
+    "Pour le mode hors connexion, ouvrez l’application sur son adresse web sécurisée.";
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  installPrompt = e;
+  $("install").hidden = false;
+});
+$("install").addEventListener("click", async () => {
+  if (!installPrompt) return;
+  await installPrompt.prompt();
+  installPrompt = null;
+  $("install").hidden = true;
+});
