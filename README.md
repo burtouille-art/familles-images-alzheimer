@@ -1,6 +1,6 @@
 # MémoirePartage
 
-Une PWA gratuite et sans publicité pour partager des activités autour de la communication, des mots et des souvenirs : quatorze activités, 46 vraies photos intégrées, trois profils d'accompagnement et tout le temps nécessaire. Téléphone, tablette ou ordinateur ; aucune inscription, aucun serveur applicatif, aucun service payant, aucune clé API.
+Une PWA gratuite et sans publicité pour partager des activités autour de la communication, des mots et des souvenirs : quinze activités, dont « Ma famille » pour les photos de proches, 46 vraies photos intégrées, trois profils d'accompagnement et tout le temps nécessaire. Téléphone, tablette ou ordinateur ; aucune inscription, aucun serveur applicatif, aucun service payant, aucune clé API.
 
 **L’application n’est ni un outil diagnostique, ni un test neuropsychologique validé, ni un traitement de la maladie d’Alzheimer. Elle ne garantit aucune amélioration ni aucun ralentissement de la maladie.** Les profils « léger », « modéré » et « avancé » sont des réglages choisis par l’aidant, pas une évaluation médicale. Pour choisir des activités appropriées à une personne, demander conseil à son équipe soignante.
 
@@ -45,14 +45,15 @@ Les champs **« Où la voit-on ? »** et **« À quoi sert-elle, ou qui est-ce ?
 
 Placer un JPG dans `assets/photos/`, ajouter ses métadonnées à `games/data.js` et son crédit à `assets/CREDITS.md`. Vérifier son sujet et sa licence. Puis exécuter `python3 scripts/build-cache.py` pour actualiser la liste du cache et sa version. Les images intégrées ne doivent contenir aucune donnée privée. Les photos de famille se chargent dans l’espace aidant, **pas dans GitHub**.
 
-## Les quatorze activités
+## Les quinze activités
 
 | Jeu | Ce que l’on fait ensemble | Léger / modéré / avancé |
 |---|---|---|
+| **Ma famille** | Uniquement les photos de la famille (rangées dans « Proches »). Trois moments qui alternent : « Voici Delphine » (regarder, en parler), « Montrez-moi Delphine » (désigner parmi des photos **légendées** : le prénom est toujours écrit), « Les doubles » (réunir deux photos identiques, toutes visibles). On ne demande jamais « Qui est-ce ? » | 10 / 6 / 3 moments ; 4 / 3 / 2 photos ; photos affichées entières, comme des tirages |
 | **Le mot juste** | Nommer un objet familier. Réponse dite à voix haute (validée par le proche), montrée du doigt ou touchée parmi des propositions | 10 / 6 / 3 photos ; propositions à la demande (4 / 3), d’emblée 2 au profil avancé |
 | **Ça sert à quoi ?** | Associer une photo nommée à sa famille, son usage ou l’endroit où on la trouve | 4 / 3 / 2 propositions ; toucher ou glisser-déposer |
 | **Une consigne à la fois** | Suivre de courtes consignes dans une scène du quotidien (six scènes : petit-déjeuner, sortir, marché, s’habiller pour l’hiver, soupe de légumes, salade de fruits) | 4 / 3 / 2 consignes et autant de photos ; une seule action par consigne |
-| **Une photo, un souvenir** | Regarder une photo et en parler. **Aucune bonne réponse** : choix de préférence ou « Nous en avons parlé ». Pour une photo de proche, le prénom est donné d’emblée (« Voici Delphine ») : on ne demande jamais « Qui est-ce ? » | 10 / 6 / 3 photos ; photos personnelles en priorité, souvenir noté affiché pour le proche |
+| **Une photo, un souvenir** | Regarder une photo de lieu ou de souvenir et en parler. **Aucune bonne réponse** : choix de préférence ou « Nous en avons parlé ». Les photos de proches sont dans « Ma famille » | 10 / 6 / 3 photos ; photos personnelles en priorité, souvenir noté affiché pour le proche |
 | **À la boulangerie** | Compter des pièces ou rendre la monnaie dans une situation d’achat | Avancé : 1 à 3 pièces et 2 choix ; modéré : petits montants ; léger : montants un peu plus élevés |
 | **À l’écoute** | Écouter un son réel, puis toucher sa photo | Aucune lecture automatique ; arrêt possible |
 | **Les photos jumelles** | Réunir des paires | 8 / 4 / 2 paires ; profils modéré et avancé : « doubles à vue », photos toujours visibles, les cacher reste un choix |
@@ -142,6 +143,10 @@ Repères pensés pour une personne vivant avec une maladie d’Alzheimer, du sta
 - **Contraste renforcé** (noir sur blanc, bordures épaisses) en option ; espaces insécables devant « ? » et « ! » pour éviter un signe isolé en début de ligne.
 - **Espace aidant en cinq sections** numérotées, avec une navigation par onglets : profil, affichage et sons, photos, sauvegarde, conseils.
 
+## Les photos de la famille
+
+Les photos de proches **ne sont jamais publiées** dans ce dépôt public. Elles sont préparées à part (recadrage sur le visage, retrait des bandes, agrandissement fidèle par super-résolution EDSR/FSRCNN, sans retouche générative du visage, éclaircissement doux) et réunies dans un fichier privé à importer sur l’appareil : **Espace aidant → Sauvegarde → Restaurer une sauvegarde**, ou directement depuis l’activité « Ma famille ». Le prénom vient du nom de fichier ; il se modifie dans l’espace aidant. Avec des photos de famille, l’accueil propose d’abord « Ma famille ».
+
 ## Version 5 : corrections issues de l’audit du 6 octobre 2026
 
 - **Aide conservée pour toute l’étape** : revoir le panier, demander un indice puis réussir n’est plus compté « sans aide ». Le soutien n’est retiré qu’après **cinq** réussites sans aide d’affilée (au lieu de trois), et l’aidant peut **garder l’aide renforcée en permanence**.
@@ -185,7 +190,7 @@ npm test
 python3 scripts/build-cache.py
 ```
 
-111 tests automatisés (Node + jsdom) : règles des profils, ordre des aides, indices phonologiques, absence de propositions ambiguës, consignes courtes, lieux sans recouvrement, noms qui se recouvrent (un jean est un pantalon), associations, proverbes, questions oui/non sans ambiguïté, migration des réglages, argent, puzzles, médias, contrastes, cache, et parcours complets des quatorze activités dans les trois profils, avec et sans soutien supplémentaire, en vérifiant l’absence de vocabulaire d’échec. Un parcours de l’application assemblée vérifie la migration, la pause, la reprise et l’arrêt anticipé. Après toute modification des médias ou du code, régénérer le cache. Tester également sur téléphone réel, clavier, zoom, avec un aidant et sans connexion ; une simulation DOM ne remplace pas une évaluation d’accessibilité ni une validation clinique.
+113 tests automatisés (Node + jsdom) : règles des profils, ordre des aides, indices phonologiques, absence de propositions ambiguës, consignes courtes, lieux sans recouvrement, noms qui se recouvrent (un jean est un pantalon), associations, proverbes, questions oui/non sans ambiguïté, migration des réglages, argent, puzzles, médias, contrastes, cache, et parcours complets des quinze activités dans les trois profils, avec et sans soutien supplémentaire, en vérifiant l’absence de vocabulaire d’échec. Un parcours de l’application assemblée vérifie la migration, la pause, la reprise et l’arrêt anticipé. Après toute modification des médias ou du code, régénérer le cache. Tester également sur téléphone réel, clavier, zoom, avec un aidant et sans connexion ; une simulation DOM ne remplace pas une évaluation d’accessibilité ni une validation clinique.
 
 Vérifié aussi dans Chromium (Playwright), téléphone 320, 360 et 390 px de large et ordinateur 1366 px, polices 24 et 32 px : les quatorze activités terminées dans les trois profils (42 parcours par format d’écran), pause puis reprise identique, absence de débordement horizontal, commandes ≥ 60 × 60 px, texte ≥ 24 px, photos chargées, navigation au clavier et Échap ; import d’une photo et d’un son personnels, priorité dans les jeux, export puis restauration après effacement, sauvegarde version 1 ; mode hors connexion après le premier chargement (82 ressources en cache : photos, sons et police).
 

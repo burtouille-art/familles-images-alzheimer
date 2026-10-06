@@ -110,8 +110,8 @@ test("Validation de sauvegarde et échappement des noms personnels", () => {
     "&lt;img onerror=&quot;x&quot;&gt;",
   );
 });
-test("Quatorze jeux et tous les médias intégrés existent", () => {
-  assert.equal(GAMES.length, 14);
+test("Quinze jeux et tous les médias intégrés existent", () => {
+  assert.equal(GAMES.length, 15);
   assert.ok(PHOTOS.length >= 46);
   assert.equal(new Set(PHOTOS.map((p) => p.id)).size, PHOTOS.length);
   assert.equal(new Set(PHOTOS.map((p) => p.name)).size, PHOTOS.length);

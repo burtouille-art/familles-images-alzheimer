@@ -17,6 +17,7 @@ import yesno from "../games/yesno.js";
 import pairs from "../games/pairs.js";
 import expressions from "../games/expressions.js";
 import prefer from "../games/prefer.js";
+import family from "../games/family.js";
 const functions = {
   recognition,
   memory,
@@ -401,7 +402,7 @@ test("Photos de proches : jamais à nommer, jamais découpées, toujours présen
   }
   const ctx = create("avance");
   ctx.photos = [relative, ...PHOTOS];
-  places(ctx);
+  family(ctx);
   assert.ok(ctx.body.querySelector(`img[src="${relative.src}"]`));
   assert.equal(document.querySelector("h1").textContent, "Voici Delphine");
   assert.doesNotMatch(ctx.body.textContent, /qui est-ce/i);
@@ -483,4 +484,70 @@ test("Le mot juste : jamais le prénom d'un proche parmi les propositions", () =
         );
       assert.ok(!ctx.body.querySelector('img[src^="blob:"]'));
     }
+});
+
+test("Ma famille : regarder, montrer, réunir — toujours avec les prénoms écrits", () => {
+  const names = ["Delphine", "Quentin", "Angèle", "Denis"];
+  const relatives = names.flatMap((name, i) =>
+    [0, 1].map((k) => ({
+      id: `custom-famille-${i}-${k}`,
+      name,
+      category: "Proches",
+      place: "",
+      hint: "",
+      src: `blob:https://example.org/${i}-${k}`,
+      personal: true,
+      ready: true,
+    })),
+  );
+  for (const stage of ["leger", "modere", "avance"]) {
+    const ctx = create(stage);
+    ctx.photos = [...relatives, ...PHOTOS];
+    family(ctx);
+    const seen = new Set();
+    for (let guard = 0; !ctx.completed && guard < 80; guard++) {
+      const title = document.querySelector("h1").textContent;
+      seen.add(title.split(" ")[0]);
+      // Aucun prénom à retrouver : chaque photo montrée porte son prénom.
+      for (const img of ctx.body.querySelectorAll("img")) {
+        const holder = img.closest("figure, button");
+        assert.ok(
+          names.some((n) => holder.textContent.includes(n)),
+          title,
+        );
+        assert.ok(
+          img.getAttribute("src").startsWith("blob:"),
+          "uniquement des photos de famille",
+        );
+      }
+      assert.doesNotMatch(ctx.body.textContent, /qui est-ce/i);
+      if (ctx.next) {
+        next(ctx);
+        continue;
+      }
+      if (title.startsWith("Voici")) {
+        clickByText(ctx, "Parlons-en");
+      } else if (title.startsWith("Montrez-moi")) {
+        correctButton(ctx).click();
+      } else {
+        // Les doubles : toucher les paires une à une.
+        const cards = [
+          ...ctx.body.querySelectorAll(".print-choice:not([disabled])"),
+        ];
+        const a = cards[0];
+        const b = cards.find((c) => c !== a && c.dataset.id === a.dataset.id);
+        a.click();
+        b.click();
+      }
+    }
+    assert.ok(ctx.completed, stage);
+    assert.ok(seen.has("Voici"));
+    if (stage !== "avance")
+      assert.ok(seen.has("Montrez-moi") && seen.has("Les"));
+  }
+  // Sans photo de famille : une invitation à ajouter le fichier, pas un jeu vide.
+  const ctx = create("modere");
+  family(ctx);
+  assert.match(document.querySelector("h1").textContent, /Ma famille/);
+  assert.ok(ctx.body.querySelector('input[type="file"]'));
 });

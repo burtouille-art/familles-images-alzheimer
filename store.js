@@ -19,6 +19,7 @@ export const GAME_IDS = [
   "pairs",
   "expressions",
   "prefer",
+  "family",
 ];
 // Observations facultatives du proche, sans valeur médicale.
 export const OBSERVATIONS = [
@@ -103,7 +104,7 @@ export function validatePreferences(raw = {}) {
             Object.entries(raw.adaptation)
               .filter(
                 ([k, v]) =>
-                  /^(leger|modere|avance)-(recognition|memory|places|sorting|sequence|sounds|money|puzzle|odd|recall|yesno|pairs|expressions|prefer)$/.test(
+                  /^(leger|modere|avance)-(recognition|memory|places|sorting|sequence|sounds|money|puzzle|odd|recall|yesno|pairs|expressions|prefer|family)$/.test(
                     k,
                   ) &&
                   v &&

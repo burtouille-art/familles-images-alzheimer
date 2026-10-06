@@ -70,7 +70,7 @@ test("Application assemblée : migration, aidant, profil avancé, pause, reprise
   assert.equal(saved().font, 32);
   assert.equal(saved().history.length, 1);
   assert.equal(saved().adaptation["leger-recognition"].support, 1);
-  assert.equal(document.querySelectorAll(".game-card").length, 14);
+  assert.equal(document.querySelectorAll(".game-card").length, 15);
   // Les cartes sont de vrais boutons, rangés dans des éléments de liste.
   for (const c of document.querySelectorAll(".game-card")) {
     assert.equal(c.tagName, "BUTTON");
@@ -107,7 +107,7 @@ test("Application assemblée : migration, aidant, profil avancé, pause, reprise
   assert.equal(document.getElementById("show-all").hidden, false);
   assert.match(document.getElementById("today").textContent, /^Nous sommes /);
   document.getElementById("show-all").click();
-  assert.equal(visibleCards().length, 14);
+  assert.equal(visibleCards().length, 15);
   document
     .querySelector('.game-card[aria-label="Jouer à Le mot juste"]')
     .click();

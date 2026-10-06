@@ -530,6 +530,13 @@ export const PHOTOS = entries.map((e) => ({
 }));
 export const GAMES = [
   {
+    id: "family",
+    title: "Ma famille",
+    domain: "Famille · souvenirs",
+    description: "Regarder les photos de la famille et en parler.",
+    cover: "maison",
+  },
+  {
     id: "recognition",
     title: "Le mot juste",
     domain: "Dénomination · accès aux mots",

@@ -24,6 +24,7 @@ import yesno from "./games/yesno.js";
 import pairs from "./games/pairs.js";
 import expressions from "./games/expressions.js";
 import prefer from "./games/prefer.js";
+import family from "./games/family.js";
 const $ = (id) => document.getElementById(id);
 const activities = {
   recognition,
@@ -40,6 +41,7 @@ const activities = {
   pairs,
   expressions,
   prefer,
+  family,
 };
 let prefs = storage.loadPreferences(),
   personal = [],
@@ -62,7 +64,7 @@ let hintHandler = null,
   restOffered = false,
   showAll = false;
 // Activités proposées d'abord au profil avancé : regarder, écouter, échanger.
-const GENTLE = ["places", "prefer", "expressions", "yesno", "recognition"];
+const GENTLE = ["family", "places", "prefer", "expressions", "yesno"];
 const views = ["home", "play", "settings", "done"];
 function showView(name) {
   stopAudio();
@@ -329,6 +331,12 @@ function startGame(id) {
       ctx.success(next, message);
     },
     sayings: prefs.sayings,
+    // Ajout du fichier de photos depuis le jeu lui-même, puis redémarrage.
+    async importFile(file) {
+      const message = await importFile(file);
+      startGame(id);
+      $("feedback").textContent = message;
+    },
     markHelp,
     reward,
     setNext,
@@ -394,8 +402,8 @@ function paintProgress(index, total) {
   );
   for (let i = 1; i <= total; i++) {
     const dot = document.createElement("span");
-    if (i < index) dot.className = "done";
-    if (i === index) dot.className = "now";
+    if (i < index) dot.className = "is-done";
+    if (i === index) dot.className = "is-now";
     bar.append(dot);
   }
 }
@@ -479,7 +487,8 @@ document.addEventListener("keydown", (e) => {
 $("replay").addEventListener("click", () => {
   if (active) startGame(active.id);
 });
-$("start-photo").addEventListener("click", () => startGame("places"));
+let featuredGame = "places";
+$("start-photo").addEventListener("click", () => startGame(featuredGame));
 function buildHome() {
   const grid = $("game-grid");
   for (const g of GAMES) {
@@ -519,8 +528,8 @@ function renderHome() {
   $("today").textContent = `Nous sommes ${day}.`;
   const mine = personal.filter((p) => p.ready);
   const featured =
-    mine.find((p) => p.category === "Lieux") ||
     mine.find((p) => p.category === "Proches") ||
+    mine.find((p) => p.category === "Lieux") ||
     mine[0];
   $("featured-photo").src = featured ? featured.src : "assets/photos/lac.jpg";
   // Une photo personnelle est montrée entière : on ne coupe jamais un visage.
@@ -528,11 +537,35 @@ function renderHome() {
   $("featured-photo").alt = featured
     ? featured.name
     : "Un lac entouré de montagnes";
+  // La carte « Ma famille » montre une vraie photo de la famille.
+  const relative = mine.find((p) => p.category === "Proches");
+  const cover = $("game-grid").querySelector(
+    '.game-card[data-game="family"] img',
+  );
+  if (cover) {
+    cover.src = relative ? relative.src : "assets/photos/maison.jpg";
+    cover.classList.toggle("face", Boolean(relative));
+  }
+  // Avec des photos de famille, l'accueil propose d'abord « Ma famille ».
+  featuredGame = relative ? "family" : "places";
+  $("featured-title").textContent = relative
+    ? "Ma famille"
+    : "Une photo, un souvenir";
+  $("featured-text").textContent = relative
+    ? "Regarder les photos de la famille, et en parler ensemble."
+    : "Regarder, en parler. Il n’y a pas de bonne réponse.";
+  $("start-photo").firstChild.textContent = relative
+    ? "Voir les photos de famille "
+    : "Regarder cette photo ";
   const chosen = chosenGames();
   const all = GAMES.map((g) => g.id);
+  // Avec des photos de famille, « Ma famille » vient en premier.
+  const base = relative
+    ? all
+    : [...all.filter((id) => id !== "family"), "family"];
   const order = chosen
-    ? [...chosen, ...all.filter((id) => !chosen.includes(id))]
-    : all;
+    ? [...chosen, ...base.filter((id) => !chosen.includes(id))]
+    : base;
   const grid = $("game-grid");
   for (const id of order) {
     const cell = grid.querySelector(`.card-cell[data-game="${id}"]`);
@@ -971,10 +1004,8 @@ $("export-backup").addEventListener("click", async () => {
     status.textContent = e.message;
   }
 });
-$("import-backup").addEventListener("change", async (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-  const status = $("backup-status");
+// Restaurer une sauvegarde ou ajouter un pack de photos ; renvoie le message.
+async function importFile(file) {
   try {
     if (file.size > 100 * 1024 * 1024)
       throw new Error("Cette sauvegarde dépasse 100 Mo.");
@@ -1036,13 +1067,17 @@ $("import-backup").addEventListener("change", async (e) => {
     favoriteButtons();
     sayingsField();
     applyPreferences();
-    status.textContent = photosOnly
+    return photosOnly
       ? `${imported.length} photo${imported.length > 1 ? "s" : ""} ajoutée${imported.length > 1 ? "s" : ""}. Vos réglages et vos séances n’ont pas changé.`
       : "Sauvegarde restaurée. Les photos déjà présentes avec le même identifiant ont été mises à jour.";
   } catch (error) {
-    status.textContent =
-      error.message || "Impossible de lire cette sauvegarde.";
+    return error.message || "Impossible de lire cette sauvegarde.";
   }
+}
+$("import-backup").addEventListener("change", async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  $("backup-status").textContent = await importFile(file);
   e.target.value = "";
 });
 buildHome();

@@ -425,10 +425,10 @@ main {
   border: 3px solid var(--deep);
   background: transparent;
 }
-.progress span.done {
+.progress span.is-done {
   background: var(--deep);
 }
-.progress span.now {
+.progress span.is-now {
   width: 26px;
   height: 26px;
   background: var(--mint);
@@ -1487,5 +1487,124 @@ input[type="file"]:focus-visible + *,
 @media (max-width: 700px) {
   .featured-image:has(img.whole) {
     height: 320px;
+  }
+}
+
+/* « Ma famille » : des photos comme des tirages, entières, avec le prénom. */
+.family-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 28px;
+  align-items: start;
+}
+.print {
+  margin: 0;
+  background: #fff;
+  border-radius: 10px;
+  padding: 12px 12px 0;
+  box-shadow:
+    0 2px 4px #2a1e0f1f,
+    0 12px 30px #2a1e0f1a;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-self: center;
+  max-width: 100%;
+}
+.print-photo {
+  display: block;
+  max-width: 100%;
+  border-radius: 4px;
+}
+.print-large .print-photo {
+  width: auto;
+  height: auto;
+  max-height: min(58vh, 560px);
+}
+.print figcaption {
+  font-size: calc(var(--font-size-base) + 6px);
+  font-weight: 700;
+  padding: 12px 8px 14px;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.print-grid {
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+}
+.print-choice {
+  background: #fff;
+  padding: 10px 10px 6px;
+}
+.print-choice .print-photo {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  object-position: 50% 28%;
+  margin: 0 0 6px;
+  border-radius: 6px;
+}
+.print-name {
+  display: block;
+  font-weight: 700;
+  font-size: calc(var(--font-size-base) + 2px);
+  padding: 4px 0;
+}
+.doubles .print-choice .print-photo {
+  aspect-ratio: 1;
+}
+.family-empty {
+  background: var(--surface);
+  border: 2px dashed var(--accent);
+  border-radius: var(--radius);
+  padding: 24px;
+}
+.game-card img.face {
+  object-position: 50% 25%;
+}
+@media (max-width: 700px) {
+  .family-layout {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+  .print {
+    padding: 8px 8px 0;
+  }
+  .print-large .print-photo {
+    max-height: 46vh;
+  }
+  .print-grid,
+  .large-text .print-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .print-choice {
+    padding: 6px 6px 2px;
+  }
+}
+
+/* Spécificité renforcée : les règles générales des choix ne s'appliquent pas
+   aux tirages de « Ma famille ». */
+.choices.print-grid,
+.large-text .choices.print-grid {
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+}
+.choices .print-choice .print-photo,
+.large-text .choices .print-choice .print-photo {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  object-position: 50% 28%;
+  margin: 0 0 6px;
+  background: #fff;
+}
+.choices.doubles .print-choice .print-photo {
+  aspect-ratio: 1;
+}
+@media (max-width: 700px) {
+  .choices.print-grid,
+  .large-text .choices.print-grid {
+    grid-template-columns: 1fr 1fr;
   }
 }

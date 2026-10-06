@@ -12,11 +12,10 @@ export default function places(ctx) {
   const photos = ctx.prioritize(
     ctx.photos.filter(
       (p) =>
+        // Les photos de proches ont leur activité : « Ma famille ».
         (p.personal &&
-          (p.place ||
-            p.hint ||
-            p.category === "Lieux" ||
-            p.category === "Proches")) ||
+          p.category !== "Proches" &&
+          (p.place || p.hint || p.category === "Lieux")) ||
         (!p.personal && (p.category === "Lieux" || p.category === "Nature")),
     ),
   );
