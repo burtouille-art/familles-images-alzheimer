@@ -1,6 +1,12 @@
 import { shuffle, button, image } from "./core.js";
 export default function memory(ctx) {
-  const photos = ctx.prioritize(ctx.photos).slice(0, ctx.rules.pairs);
+  // Objets et paysages d'abord ; pas de visages de proches découpés en cartes.
+  const photos = ctx
+    .prioritize(ctx.photos.filter((p) => p.category !== "Proches"))
+    .slice(0, ctx.rules.pairs);
+  // « Doubles à vue » aux profils modéré et avancé : les photos restent
+  // visibles ; les cacher est un choix, jamais une obligation.
+  const visible = ctx.stage !== "leger";
   const cards = shuffle(photos.flatMap((p) => [{ photo: p }, { photo: p }]));
   let open = [],
     matched = 0,
@@ -8,7 +14,9 @@ export default function memory(ctx) {
   let peek = false;
   ctx.prepare(
     "Les photos jumelles",
-    "Touchez deux cartes pour retrouver les mêmes photos. Aucun besoin de se dépêcher.",
+    visible
+      ? "Touchez les deux photos pareilles. Elles restent visibles."
+      : "Touchez deux cartes pour retrouver les mêmes photos. Aucun besoin de se dépêcher.",
   );
   const grid = document.createElement("div");
   grid.className = "memory-grid";
@@ -76,25 +84,20 @@ export default function memory(ctx) {
   cards.forEach((_, i) =>
     grid.append(button(`Carte ${i + 1}`, () => flip(i), "memory-card")),
   );
-  if (ctx.stage === "avance") {
+  if (visible) {
     peek = true;
     cards.forEach((_, i) => paint(i));
     actions.append(
       button(
-        "Masquer les photos quand vous êtes prêt",
+        "Cacher les photos, pour plus de défi",
         () => {
           peek = false;
           cards.forEach((_, i) => paint(i));
           actions.replaceChildren();
         },
-        "primary",
+        "quiet",
       ),
     );
-    locked = true;
-    const starter = actions.lastElementChild;
-    starter.addEventListener("click", () => {
-      locked = false;
-    });
   }
   ctx.setCaregiverTip(
     "Nommez les photos quand elles apparaissent. Vous pouvez montrer les cartes à nouveau autant de fois que nécessaire.",

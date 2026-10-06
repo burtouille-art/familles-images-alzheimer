@@ -70,7 +70,13 @@ test("Application assemblée : migration, aidant, profil avancé, pause, reprise
   assert.equal(saved().font, 32);
   assert.equal(saved().history.length, 1);
   assert.equal(saved().adaptation["leger-recognition"].support, 1);
-  assert.equal(document.querySelectorAll(".game-card").length, 13);
+  assert.equal(document.querySelectorAll(".game-card").length, 14);
+  // Les cartes sont de vrais boutons, rangés dans des éléments de liste.
+  for (const c of document.querySelectorAll(".game-card")) {
+    assert.equal(c.tagName, "BUTTON");
+    assert.equal(c.getAttribute("role"), null);
+    assert.equal(c.parentElement.getAttribute("role"), "listitem");
+  }
 
   document.getElementById("caregiver").click();
   await new Promise((resolve) => setTimeout(resolve, 20));
@@ -96,12 +102,12 @@ test("Application assemblée : migration, aidant, profil avancé, pause, reprise
   // Le mot juste, profil avancé : deux propositions et des aides progressives.
   // Profil avancé : quatre activités douces d'abord, les autres sur demande.
   const visibleCards = () =>
-    [...document.querySelectorAll(".game-card")].filter((c) => !c.hidden);
+    [...document.querySelectorAll(".card-cell")].filter((c) => !c.hidden);
   assert.equal(visibleCards().length, 5);
   assert.equal(document.getElementById("show-all").hidden, false);
   assert.match(document.getElementById("today").textContent, /^Nous sommes /);
   document.getElementById("show-all").click();
-  assert.equal(visibleCards().length, 13);
+  assert.equal(visibleCards().length, 14);
   document
     .querySelector('.game-card[aria-label="Jouer à Le mot juste"]')
     .click();
@@ -144,13 +150,18 @@ test("Application assemblée : migration, aidant, profil avancé, pause, reprise
   assert.equal(document.getElementById("done").hidden, false);
   assert.equal(saved().history.length, 2);
   assert.deepEqual(Object.keys(saved().history[1]).sort(), ["date", "game"]);
+  // Observation facultative du proche, sans valeur médicale.
+  [...document.querySelectorAll("#observation-options button")]
+    .find((b) => b.textContent === "Moment apprécié")
+    .click();
+  assert.equal(saved().history[1].note, "Moment apprécié");
 
   // L'accueil propose d'abord un échange autour d'une photo, sans réponse attendue.
   document.getElementById("done-home").click();
   document.getElementById("start-photo").click();
   assert.equal(
     document.getElementById("game-title").textContent,
-    "Un lieu, un souvenir",
+    "Une photo, un souvenir",
   );
   document.querySelector("#game-body .text-choices button").click();
   assert.match(document.getElementById("feedback").textContent, /merci/i);
@@ -158,4 +169,74 @@ test("Application assemblée : migration, aidant, profil avancé, pause, reprise
   document.getElementById("pause-home").click();
   assert.equal(document.getElementById("home").hidden, false);
   assert.equal(saved().history.length, 2);
+
+  // « Dans mon panier » : revoir le panier puis réussir reste une réussite
+  // avec aide ; le soutien n'est pas retiré.
+  document.getElementById("show-all").click();
+  document.querySelector('.game-card[data-game="recall"]').click();
+  [...document.querySelectorAll("#game-body button")]
+    .find((b) => b.textContent === "Je suis prêt à les retrouver")
+    .click();
+  [...document.querySelectorAll("#game-body button")]
+    .find((b) => b.textContent === "Revoir le panier")
+    .click();
+  [...document.querySelectorAll("#game-body button")]
+    .find((b) => b.textContent === "Je suis prêt à les retrouver")
+    .click();
+  document.querySelector('#game-body button[data-correct="true"]').click();
+  assert.equal(saved().adaptation["avance-recall"].streak, 0);
+
+  // « Une consigne à la fois » : le conseil au proche reste après « Commencer ».
+  document.getElementById("pause").click();
+  document.getElementById("pause-home").click();
+  document.getElementById("show-all").click();
+  document.querySelector('.game-card[data-game="sequence"]').click();
+  const tip = document.getElementById("guide").textContent;
+  assert.ok(tip.length > 20);
+  [...document.querySelectorAll("#game-body button")]
+    .find((b) => b.textContent === "Commencer")
+    .click();
+  assert.equal(document.getElementById("guide").textContent, tip);
+  assert.equal(document.getElementById("guide").hidden, false);
+  // « Autre photo » passe à l'étape suivante sans répondre.
+  assert.equal(document.getElementById("skip").hidden, false);
+  const step = document.getElementById("instruction").textContent;
+  document.getElementById("skip").click();
+  assert.notEqual(document.getElementById("instruction").textContent, step);
+
+  // Séance préparée : l'accueil ne montre que les activités choisies.
+  document.getElementById("pause").click();
+  document.getElementById("pause-home").click();
+  document.getElementById("caregiver").click();
+  await new Promise((resolve) => setTimeout(resolve, 20));
+  for (const title of ["Ce qui me plaît", "À l’écoute"])
+    [...document.querySelectorAll("#favorite-options button")]
+      .find((b) => b.textContent === title)
+      .click();
+  assert.deepEqual(saved().favorites, ["sounds", "prefer"]);
+  // Expressions de la famille.
+  const sayings = document.getElementById("sayings");
+  sayings.value = "Il n’y a pas le feu | au lac\nligne sans barre";
+  sayings.dispatchEvent(new window.Event("change"));
+  assert.deepEqual(saved().sayings, [
+    { start: "Il n’y a pas le feu", end: "au lac" },
+  ]);
+  document.getElementById("close-settings").click();
+  assert.equal(
+    [...document.querySelectorAll(".card-cell")].filter((c) => !c.hidden)
+      .length,
+    2,
+  );
+  document.querySelector('.game-card[data-game="expressions"]').click();
+  assert.match(
+    document.querySelector(".proverb").textContent,
+    /^Il n’y a pas le feu…$/,
+  );
+  [...document.querySelectorAll("#caregiver-actions-list button")]
+    .find((b) => b.textContent === "La fin a été dite ensemble")
+    .click();
+  assert.match(
+    document.querySelector(".proverb").textContent,
+    /Il n’y a pas le feu au lac\./,
+  );
 });

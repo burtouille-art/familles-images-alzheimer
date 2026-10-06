@@ -1318,3 +1318,174 @@ input[type="file"]:focus-visible + *,
       border-color 0.15s;
   }
 }
+
+/* Version 5 : commandes du proche, séance préparée, album de photos. */
+.card-cell {
+  display: flex;
+}
+.card-cell > .game-card {
+  flex: 1;
+}
+.card-title {
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+/* Les commandes du proche sont regroupées, à part des réponses. */
+.caregiver-actions {
+  border: 2px dashed var(--accent);
+  border-radius: var(--radius-small);
+  padding: 14px 16px;
+  margin: 0 0 16px;
+  background: var(--surface);
+}
+.caregiver-actions-title {
+  margin: 0 0 10px;
+  font-weight: 700;
+  color: var(--accent);
+}
+.caregiver-actions-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.cue-history summary {
+  cursor: pointer;
+  min-height: var(--tap);
+  display: flex;
+  align-items: center;
+  font-weight: 700;
+  color: var(--deep);
+}
+.cue-history .cue {
+  margin: 8px 0 0;
+}
+.favorite-options,
+.observation-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.favorite-options [aria-pressed="true"],
+.observation-options [aria-pressed="true"] {
+  background: var(--deep);
+  border-color: var(--deep);
+  color: #fff;
+}
+.favorite-options [aria-pressed="true"]::before,
+.observation-options [aria-pressed="true"]::before {
+  content: "✓ ";
+}
+.observation {
+  border-top: 1px solid var(--line);
+  margin-top: 20px;
+  padding-top: 16px;
+}
+.observation-title {
+  font-weight: 700;
+}
+.done .observation-options button {
+  width: auto;
+  display: inline-flex;
+  margin: 0;
+}
+.personal-grid {
+  display: grid;
+  gap: 12px;
+}
+.personal-item {
+  border: 2px solid var(--line);
+  border-radius: var(--radius-small);
+  background: var(--surface);
+}
+.personal-item > summary {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 8px 12px;
+  min-height: 84px;
+  cursor: pointer;
+  list-style: none;
+  font-weight: 700;
+}
+.personal-item > summary::-webkit-details-marker {
+  display: none;
+}
+.personal-item > summary img {
+  width: 68px;
+  height: 68px;
+  object-fit: cover;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+.personal-item > summary span:nth-of-type(1) {
+  flex: 1;
+  overflow-wrap: anywhere;
+}
+.personal-cat {
+  font-weight: 400;
+  color: var(--accent);
+}
+.personal-item[open] > summary {
+  border-bottom: 1px solid var(--line);
+}
+.personal-item .personal-editor {
+  border: 0;
+}
+.prefer-choices {
+  grid-template-columns: 1fr 1fr;
+}
+.prefer-choices .choice img {
+  height: min(30vh, 260px);
+}
+@media (max-width: 700px) {
+  .prefer-choices .choice img {
+    height: min(22vh, 170px);
+  }
+  .card-title {
+    font-size: 26px;
+  }
+}
+.prefer-choices {
+  grid-template-columns: 1fr 1fr !important;
+}
+@media (max-width: 700px) {
+  .game-tools {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+  }
+  .tool {
+    padding: 6px 2px;
+  }
+  .large-text .game-tools {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .large-text .tool {
+    flex-direction: row;
+    gap: 8px;
+  }
+}
+/* Les visages se trouvent en général dans le haut des photos. */
+.featured-image img,
+.personal-item > summary img {
+  object-position: 50% 28%;
+}
+.photo-question.relative .big-photo,
+.large-text .photo-question.relative .big-photo {
+  height: min(50vh, 460px);
+}
+@media (max-width: 700px) {
+  .photo-question.relative .big-photo,
+  .large-text .photo-question.relative .big-photo {
+    height: min(44vh, 380px);
+  }
+}
+.featured-image img.whole {
+  object-fit: contain;
+  background: var(--mint);
+}
+@media (max-width: 700px) {
+  .featured-image:has(img.whole) {
+    height: 320px;
+  }
+}

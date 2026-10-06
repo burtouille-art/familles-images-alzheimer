@@ -59,7 +59,22 @@ export default function pairs(ctx) {
     }
     layout.append(figure, choices);
     ctx.body.append(layout);
+    // D'autres liens sont possibles : le proche peut accueillir celui que la
+    // personne explique, sans que ce soit compté comme une difficulté.
+    ctx.caregiverAction("Un autre lien a été expliqué", () => {
+      if (answered) return;
+      answered = true;
+      for (const c of choices.children) c.disabled = true;
+      ctx.accept(() => {
+        round++;
+        show();
+      }, "Merci pour cette explication. Il y a souvent plusieurs bonnes idées.");
+    });
     let hints = 0;
+    ctx.setSkip(() => {
+      round++;
+      show();
+    });
     ctx.setHint(() => {
       hints++;
       if (hints === 1) return from.function || from.context;

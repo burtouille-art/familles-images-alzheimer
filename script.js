@@ -23,6 +23,7 @@ import recall from "./games/recall.js";
 import yesno from "./games/yesno.js";
 import pairs from "./games/pairs.js";
 import expressions from "./games/expressions.js";
+import prefer from "./games/prefer.js";
 const $ = (id) => document.getElementById(id);
 const activities = {
   recognition,
@@ -38,6 +39,7 @@ const activities = {
   yesno,
   pairs,
   expressions,
+  prefer,
 };
 let prefs = storage.loadPreferences(),
   personal = [],
@@ -48,6 +50,7 @@ let prefs = storage.loadPreferences(),
   audioContext = null,
   installPrompt = null;
 let hintHandler = null,
+  skipHandler = null,
   hadHelp = false,
   hadDifficulty = false,
   sessionToken = 0,
@@ -59,7 +62,7 @@ let hintHandler = null,
   restOffered = false,
   showAll = false;
 // Activités proposées d'abord au profil avancé : regarder, écouter, échanger.
-const GENTLE = ["places", "yesno", "expressions", "sounds", "recognition"];
+const GENTLE = ["places", "prefer", "expressions", "yesno", "recognition"];
 const views = ["home", "play", "settings", "done"];
 function showView(name) {
   stopAudio();
@@ -67,6 +70,7 @@ function showView(name) {
   views.forEach((id) => ($(id).hidden = id !== name));
   document.body.classList.toggle("in-game", name === "play");
   if (name === "home") renderHome();
+  if (name === "done") observationButtons();
   $("main").focus();
   window.scrollTo({ top: 0, behavior: "instant" });
 }
@@ -84,6 +88,7 @@ function applyPreferences() {
   document.documentElement.classList.toggle("high-contrast", prefs.contrast);
   $("contrast").checked = prefs.contrast;
   $("rest").checked = prefs.rest;
+  $("support-lock").checked = prefs.supportLock;
   if (document.activeElement !== $("person-name"))
     $("person-name").value = prefs.name;
   $("sound").checked = prefs.sound;
@@ -183,6 +188,8 @@ function setNext(handler, label = "Continuer tranquillement") {
 function home() {
   sessionToken++;
   active = null;
+  // De retour à l'accueil, la séance préparée est de nouveau mise en avant.
+  showAll = false;
   closePause();
   showView("home");
 }
@@ -225,9 +232,13 @@ function startGame(id) {
   sessionToken++;
   active = g;
   stepsDone = 0;
+  hadHelp = false;
+  hadDifficulty = false;
   closePause();
   showView("play");
   $("caregiver-tip").hidden = true;
+  $("tip-toggle").hidden = true;
+  $("guide").hidden = true;
   $("tip-toggle").setAttribute("aria-expanded", "false");
   $("game-domain").textContent = g.title;
   sessionStart ||= Date.now();
@@ -238,7 +249,10 @@ function startGame(id) {
     photos: [...personal.filter((p) => p.ready), ...PHOTOS],
     body: $("game-body"),
     get rules() {
-      return getRules(prefs.stage, prefs.adaptation[key]?.support || 0);
+      return getRules(
+        prefs.stage,
+        prefs.supportLock ? 1 : prefs.adaptation[key]?.support || 0,
+      );
     },
     prioritize: (items) => [
       ...shuffle(items.filter((p) => p.personal)),
@@ -264,15 +278,21 @@ function startGame(id) {
     },
     share(next, message = "Merci pour ce moment d’échange.") {
       stepsDone++;
+      hadHelp = false;
+      hadDifficulty = false;
       $("feedback").textContent = message;
       setNext(next);
     },
     prepare(title, instruction, index, total) {
       stopAudio();
       speechSynthesisSafeCancel();
-      hadHelp = false;
-      hadDifficulty = false;
+      // L'aide reçue reste attachée à la tâche jusqu'à sa réussite :
+      // revoir le modèle puis réussir n'est pas compté « sans aide ».
       hintHandler = null;
+      skipHandler = null;
+      $("skip").hidden = true;
+      $("caregiver-actions").hidden = true;
+      $("caregiver-actions-list").replaceChildren();
       $("hint").disabled = false;
       $("game-title").textContent = title;
       $("instruction").textContent = instruction;
@@ -281,10 +301,6 @@ function startGame(id) {
       guardUntil = performance.now() + 350;
       lastPressed = null;
       offerRest();
-      $("guide").hidden = true;
-      $("tip-toggle").hidden = true;
-      $("caregiver-tip").hidden = true;
-      $("tip-toggle").setAttribute("aria-expanded", "false");
       ctx.body.replaceChildren();
       $("feedback").textContent = "";
       setNext(null);
@@ -294,6 +310,25 @@ function startGame(id) {
     setHint(fn) {
       hintHandler = fn;
     },
+    // « Autre photo » : passer à la suite sans répondre, à tout moment.
+    setSkip(fn) {
+      skipHandler = fn;
+      $("skip").hidden = !fn;
+    },
+    // Commandes du proche, séparées des réponses de la personne.
+    caregiverAction(label, fn) {
+      $("caregiver-actions").hidden = false;
+      const b = button(label, fn, "quiet");
+      $("caregiver-actions-list").append(b);
+      return b;
+    },
+    // Réponse dite, montrée ou expliquée, validée par le proche : accueillie
+    // comme une réussite, mais sans réduire le soutien.
+    accept(next, message) {
+      markHelp();
+      ctx.success(next, message);
+    },
+    sayings: prefs.sayings,
     markHelp,
     reward,
     setNext,
@@ -304,6 +339,8 @@ function startGame(id) {
       if (lastPressed?.classList.contains("choice"))
         lastPressed.classList.add("chosen");
       if (!hadHelp && !hadDifficulty) mark("success");
+      hadHelp = false;
+      hadDifficulty = false;
       stepsDone++;
       reward();
       $("feedback").textContent =
@@ -397,9 +434,28 @@ $("hint").addEventListener("click", () => {
   const message = hintHandler();
   if (message) $("feedback").textContent = message;
 });
-$("read").addEventListener("click", () =>
-  say(`${$("game-title").textContent}. ${$("instruction").textContent}`),
-);
+// « Lire » : la consigne, puis ce qui est affiché au centre et les réponses.
+$("read").addEventListener("click", () => {
+  const body = $("game-body");
+  const parts = [$("game-title").textContent, $("instruction").textContent];
+  for (const el of body.querySelectorAll(
+    ".proverb, .talk, .named-photo figcaption",
+  ))
+    parts.push(el.textContent);
+  const labels = [...body.querySelectorAll("button.choice")]
+    .filter((b) => !b.hidden && !b.disabled)
+    .map((b) => b.textContent.trim())
+    .filter(Boolean);
+  if (labels.length) parts.push(`Les réponses : ${labels.join(", ")}`);
+  say(parts.join(". "));
+});
+$("skip").addEventListener("click", () => {
+  if (!skipHandler) return;
+  const fn = skipHandler;
+  skipHandler = null;
+  stopAudio();
+  fn();
+});
 for (const id of ["close-settings", "done-home", "pause-home"])
   $(id).addEventListener("click", home);
 $("brand").addEventListener("click", () =>
@@ -427,19 +483,29 @@ $("start-photo").addEventListener("click", () => startGame("places"));
 function buildHome() {
   const grid = $("game-grid");
   for (const g of GAMES) {
+    // La cellule porte le rôle de liste ; la carte reste un vrai bouton.
+    const cell = document.createElement("div");
+    cell.setAttribute("role", "listitem");
+    cell.className = "card-cell";
+    cell.dataset.game = g.id;
     const card = document.createElement("button");
     card.type = "button";
     card.className = "game-card";
     card.dataset.game = g.id;
-    card.setAttribute("role", "listitem");
     card.setAttribute("aria-label", `Jouer à ${g.title}`);
-    card.innerHTML = `<img src="assets/photos/${g.cover}.jpg" alt="" loading="lazy" width="640" height="420"><span class="card-text"><h3>${g.title}</h3><span>${g.description}</span><span class="go" aria-hidden="true">Commencer <svg class="icon"><use href="#i-arrow"/></svg></span></span>`;
+    card.innerHTML = `<img src="assets/photos/${g.cover}.jpg" alt="" loading="lazy" width="640" height="420"><span class="card-text"><span class="card-title">${g.title}</span><span>${g.description}</span><span class="go" aria-hidden="true">Commencer <svg class="icon"><use href="#i-arrow"/></svg></span></span>`;
     card.addEventListener("click", () => startGame(g.id));
-    grid.append(card);
+    cell.append(card);
+    grid.append(cell);
   }
 }
+// La séance préparée par l'aidant, sinon une sélection selon le profil.
+function chosenGames() {
+  if (prefs.favorites?.length) return prefs.favorites;
+  return prefs.stage === "avance" ? GENTLE : null;
+}
 // Accueil : salutation selon l'heure, date du jour (repère dans le temps),
-// photo personnelle mise en avant, activités ordonnées selon le profil.
+// photo personnelle mise en avant, activités de la séance d'abord.
 function renderHome() {
   const now = new Date();
   const hour = now.getHours();
@@ -452,34 +518,123 @@ function renderHome() {
   });
   $("today").textContent = `Nous sommes ${day}.`;
   const mine = personal.filter((p) => p.ready);
-  const featured = mine.find((p) => p.category === "Lieux") || mine[0];
+  const featured =
+    mine.find((p) => p.category === "Lieux") ||
+    mine.find((p) => p.category === "Proches") ||
+    mine[0];
   $("featured-photo").src = featured ? featured.src : "assets/photos/lac.jpg";
+  // Une photo personnelle est montrée entière : on ne coupe jamais un visage.
+  $("featured-photo").classList.toggle("whole", Boolean(featured));
   $("featured-photo").alt = featured
     ? featured.name
     : "Un lac entouré de montagnes";
-  const gentle = prefs.stage === "avance";
-  const order = gentle
-    ? [
-        ...GENTLE,
-        ...GAMES.map((g) => g.id).filter((id) => !GENTLE.includes(id)),
-      ]
-    : GAMES.map((g) => g.id);
+  const chosen = chosenGames();
+  const all = GAMES.map((g) => g.id);
+  const order = chosen
+    ? [...chosen, ...all.filter((id) => !chosen.includes(id))]
+    : all;
   const grid = $("game-grid");
   for (const id of order) {
-    const card = grid.querySelector(`[data-game="${id}"]`);
-    grid.append(card);
-    card.hidden = gentle && !showAll && !GENTLE.includes(id);
+    const cell = grid.querySelector(`.card-cell[data-game="${id}"]`);
+    grid.append(cell);
+    cell.hidden = Boolean(chosen) && !showAll && !chosen.includes(id);
   }
-  $("show-all").hidden = !gentle || showAll;
-  $("activities-lead").textContent = gentle
-    ? "Cinq activités douces, à faire ensemble."
-    : "Touchez celle qui vous plaît.";
+  $("show-all").hidden = !chosen || showAll;
+  $("activities-lead").textContent = prefs.favorites?.length
+    ? "Les activités préparées pour aujourd’hui."
+    : chosen
+      ? "Quelques activités douces, à faire ensemble."
+      : "Touchez celle qui vous plaît.";
 }
 $("show-all").addEventListener("click", () => {
+  const n = chosenGames()?.length || 0;
   showAll = true;
   renderHome();
-  $("game-grid").querySelectorAll(".game-card")[GENTLE.length]?.focus();
+  $("game-grid").querySelectorAll(".game-card")[n]?.focus();
 });
+// Séance préparée : l'aidant coche les activités à proposer sur l'accueil.
+function favoriteButtons() {
+  const wrap = $("favorite-options");
+  wrap.replaceChildren();
+  const current = prefs.favorites || [];
+  for (const g of GAMES) {
+    const b = button(g.title, () => {
+      const set = new Set(prefs.favorites || []);
+      if (set.has(g.id)) set.delete(g.id);
+      else if (set.size >= 6) {
+        $("favorite-status").textContent = "Six activités au plus.";
+        return;
+      } else set.add(g.id);
+      prefs.favorites = set.size
+        ? GAMES.map((x) => x.id).filter((id) => set.has(id))
+        : null;
+      persist();
+      favoriteButtons();
+      $("favorite-status").textContent = prefs.favorites
+        ? `${prefs.favorites.length} activité${prefs.favorites.length > 1 ? "s" : ""} sur l’accueil.`
+        : "Aucune activité choisie : l’accueil propose une sélection selon le profil.";
+    });
+    b.setAttribute("aria-pressed", String(current.includes(g.id)));
+    wrap.append(b);
+  }
+}
+function sayingsField() {
+  $("sayings").value = prefs.sayings
+    .map((x) => `${x.start} | ${x.end}`)
+    .join("\n");
+}
+$("sayings").addEventListener("change", (e) => {
+  const lines = e.target.value
+    .split("\n")
+    .map((l) => l.trim())
+    .filter(Boolean);
+  const sayings = [];
+  let ignored = 0;
+  for (const l of lines) {
+    const [start, ...rest] = l.split("|");
+    const end = rest.join("|").trim();
+    if (start?.trim() && end && start.length <= 120 && end.length <= 60)
+      sayings.push({ start: start.trim(), end });
+    else ignored++;
+  }
+  prefs.sayings = sayings.slice(0, 30);
+  persist();
+  $("sayings-status").textContent =
+    `${prefs.sayings.length} expression${prefs.sayings.length > 1 ? "s" : ""} enregistrée${prefs.sayings.length > 1 ? "s" : ""}.` +
+    (ignored
+      ? ` ${ignored} ligne${ignored > 1 ? "s" : ""} sans « | » ignorée${ignored > 1 ? "s" : ""}.`
+      : "");
+});
+$("support-lock").addEventListener("change", (e) => {
+  prefs.supportLock = e.target.checked;
+  persist();
+});
+// Observation facultative du proche, ajoutée à la dernière séance.
+function observationButtons() {
+  const wrap = $("observation-options");
+  wrap.replaceChildren();
+  $("observation-status").textContent = "";
+  for (const label of storage.OBSERVATIONS) {
+    const b = button(
+      label,
+      () => {
+        const last = prefs.history.at(-1);
+        if (!last) return;
+        last.note = last.note === label ? undefined : label;
+        if (!last.note) delete last.note;
+        persist();
+        for (const x of wrap.children)
+          x.setAttribute("aria-pressed", String(x.textContent === last.note));
+        $("observation-status").textContent = last.note
+          ? `Noté : « ${last.note} ».`
+          : "Observation retirée.";
+      },
+      "quiet",
+    );
+    b.setAttribute("aria-pressed", "false");
+    wrap.append(b);
+  }
+}
 function stageButtons() {
   const wrap = $("stage-options");
   wrap.replaceChildren();
@@ -573,6 +728,8 @@ async function settings() {
   showView("settings");
   stageButtons();
   fontButtons();
+  favoriteButtons();
+  sayingsField();
   applyPreferences();
   renderHistory();
   $("settings-title").focus();
@@ -593,7 +750,7 @@ function renderHistory() {
     const g = GAMES.find((g) => g.id === s.game);
     if (!g) continue;
     const li = document.createElement("li");
-    li.textContent = `${new Date(s.date).toLocaleDateString("fr-FR", { day: "numeric", month: "long" })} — ${g.title}`;
+    li.textContent = `${new Date(s.date).toLocaleDateString("fr-FR", { day: "numeric", month: "long" })} — ${g.title}${s.note ? ` · ${s.note}` : ""}`;
     list.append(li);
   }
 }
@@ -607,8 +764,31 @@ function renderPersonal() {
     wrap.append(p);
     return;
   }
+  const count = document.createElement("p");
+  count.textContent = `${personal.length} photo${personal.length > 1 ? "s" : ""} sur cet appareil. Touchez une photo pour la modifier.`;
+  wrap.append(count);
+  const grid = document.createElement("div");
+  grid.className = "personal-grid";
+  wrap.append(grid);
   for (const p of personal) {
     const raw = rawPersonal.find((x) => x.id === p.id);
+    // Chaque photo se replie : la liste reste courte, même avec 50 photos.
+    const box = document.createElement("details");
+    box.className = "personal-item";
+    // Une photo à nommer s'ouvre d'elle-même.
+    box.open = !p.ready;
+    const summary = document.createElement("summary");
+    const thumb = document.createElement("img");
+    thumb.src = p.src;
+    thumb.alt = "";
+    thumb.loading = "lazy";
+    const label = document.createElement("span");
+    label.textContent = p.name || "Sans nom";
+    const cat = document.createElement("span");
+    cat.className = "personal-cat";
+    cat.textContent = p.ready ? p.category : "À nommer";
+    summary.append(thumb, label, cat);
+    box.append(summary);
     const editor = document.createElement("form");
     editor.className = "personal-editor";
     editor.innerHTML = `<img src="${p.src}" alt="Photo personnelle à personnaliser"><label>Nom à reconnaître<input type="text" name="name" maxlength="80" required value="${escapeHTML(p.name)}" placeholder="Le lac de notre village"></label><p>Pour une personne, indiquez le prénom ou le lien familial qui lui est familier.</p><fieldset><legend>Famille de la photo</legend><div class="category-options"></div></fieldset><label>Lieu associé (facultatif)<input type="text" name="place" maxlength="100" value="${escapeHTML(p.place)}" placeholder="Au lac de notre village"></label><label>Où la voit-on, d’habitude ? (facultatif)<input type="text" name="context" maxlength="160" value="${escapeHTML(p.context)}" placeholder="Sur le buffet du salon"></label><label>À quoi sert-elle, ou qui est-ce ? (facultatif)<input type="text" name="function" maxlength="160" value="${escapeHTML(p.function)}" placeholder="Pour moudre le café du matin"></label><p>Ces deux phrases servent d’aides progressives dans « Le mot juste ».</p><label>Souvenir à partager (facultatif)<textarea name="hint" maxlength="240" rows="3" placeholder="Nous y allions chaque été…">${escapeHTML(p.hint)}</textarea></label><label>Son associé (facultatif)<input type="file" name="audio" accept="audio/*"></label><p>${p.audio ? "Un son personnel est associé à cette photo." : "Un son de 5 Mo maximum peut accompagner la photo dans « À l’écoute »."}</p><div class="editor-actions"></div><p class="toast" role="status"></p>`;
@@ -701,7 +881,8 @@ function renderPersonal() {
         save.disabled = false;
       }
     });
-    wrap.append(editor);
+    box.append(editor);
+    grid.append(box);
   }
 }
 $("upload-photo").addEventListener("change", async (e) => {
@@ -834,16 +1015,23 @@ $("import-backup").addEventListener("change", async (e) => {
       };
     });
     await storage.putManyPhotos(imported);
-    prefs = storage.validatePreferences(data.preferences);
-    persist();
+    // Un « pack de photos » (sans réglages) s'ajoute sans rien remplacer.
+    const photosOnly = !data.preferences;
+    if (!photosOnly) {
+      prefs = storage.validatePreferences(data.preferences);
+      persist();
+    }
     await refreshPersonal();
     renderPersonal();
     renderHistory();
     stageButtons();
     fontButtons();
+    favoriteButtons();
+    sayingsField();
     applyPreferences();
-    status.textContent =
-      "Sauvegarde restaurée. Les photos déjà présentes avec le même identifiant ont été mises à jour.";
+    status.textContent = photosOnly
+      ? `${imported.length} photo${imported.length > 1 ? "s" : ""} ajoutée${imported.length > 1 ? "s" : ""}. Vos réglages et vos séances n’ont pas changé.`
+      : "Sauvegarde restaurée. Les photos déjà présentes avec le même identifiant ont été mises à jour.";
   } catch (error) {
     status.textContent =
       error.message || "Impossible de lire cette sauvegarde.";

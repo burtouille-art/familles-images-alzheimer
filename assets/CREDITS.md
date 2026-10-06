@@ -12,7 +12,7 @@ Les photographies de la première série sont sous [licence Pexels](https://www.
 | `brosse.jpg` | [Pexels, photo 13579612](https://www.pexels.com/photo/13579612/) | Pexels |
 | `cafe.jpg` | [Pexels, photo 302899](https://www.pexels.com/photo/302899/) | Pexels |
 | `carotte.jpg` | [Pexels, photo 2880693](https://www.pexels.com/photo/2880693/) | Pexels |
-| `centime.jpg` | [Pexels, photo 730647](https://www.pexels.com/photo/730647/) | Pexels |
+| `piece-1-euro.jpg` | [Pexels, photo 730647](https://www.pexels.com/photo/730647/), pièce isolée par détourage (la pile de pièces de l’arrière-plan a été retirée) | Pexels |
 | `chat.jpg` | [Pexels, photo 1170986](https://www.pexels.com/photo/1170986/) | Pexels |
 | `chaussures.jpg` | [Pexels, photo 14212621](https://www.pexels.com/photo/14212621/) | Pexels |
 | `chemise.jpg` | [Pexels, photo 428340](https://www.pexels.com/photo/428340/) | Pexels |
@@ -29,7 +29,7 @@ Les photographies de la première série sont sous [licence Pexels](https://www.
 | `pomme.jpg` | [Pexels, photo 102104](https://www.pexels.com/photo/102104/) | Pexels |
 | `tomate.jpg` | [Pexels, photo 19852143](https://www.pexels.com/photo/19852143/) | Pexels |
 
-Les fichiers `bouilloire.jpg` (une **théière** et une tasse) et `chemise.jpg` (un **tee-shirt**) gardent leur ancien nom technique ; les libellés du jeu ont été corrigés. La photo `centime.jpg` porte aussi un ancien nom technique ; elle montre une pièce de **1 euro au premier plan**, pas une pièce de 1 centime. Les montants utilisés dans le jeu sont en euros.
+Les fichiers `bouilloire.jpg` (une **théière** et une tasse) et `chemise.jpg` (un **tee-shirt**) gardent leur ancien nom technique ; les libellés du jeu ont été corrigés.
 
 ## Photos ajoutées en version 4
 

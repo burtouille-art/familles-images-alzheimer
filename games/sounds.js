@@ -20,7 +20,13 @@ export default function sounds(ctx) {
     );
     const choices = document.createElement("div");
     choices.className = "choices";
-    for (const item of choiceSet(p, ctx.photos, ctx.rules.choices, "id", {
+    // Aucun paysage ni photo d'eau parmi les autres propositions : un bruit
+    // d'eau irait aussi bien avec une plage qu'avec un lac.
+    const pool = ctx.photos.filter(
+      (x) =>
+        x.id === p.id || !["Lieux", "Nature", "Proches"].includes(x.category),
+    );
+    for (const item of choiceSet(p, pool, ctx.rules.choices, "id", {
       close: ctx.rules.close,
     })) {
       const b = photoChoice(item, () => {
@@ -39,6 +45,10 @@ export default function sounds(ctx) {
       choices.append(b);
     }
     ctx.body.append(actions, choices);
+    ctx.setSkip(() => {
+      round++;
+      show();
+    });
     ctx.setHint(() => p.hint || `Ce son accompagne la photo « ${p.name} ».`);
     ctx.setCaregiverTip(
       "Réglez un volume confortable. Vous pouvez imiter le son, en parler (« Vous aviez un chien ? ») ou simplement écouter ensemble.",

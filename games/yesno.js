@@ -77,6 +77,10 @@ export default function yesno(ctx) {
     layout.append(figure, side);
     ctx.body.append(layout);
     let hints = 0;
+    ctx.setSkip(() => {
+      round++;
+      show();
+    });
     ctx.setHint(() => {
       hints++;
       if (hints === 1)

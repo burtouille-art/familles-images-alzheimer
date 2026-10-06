@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { JSDOM } from "jsdom";
-import { PHOTOS, SCENES } from "../games/data.js";
+import { PHOTOS, SCENES, PROVERBS } from "../games/data.js";
 import { getRules } from "../games/core.js";
 import recognition from "../games/recognition.js";
 import memory from "../games/memory.js";
@@ -16,6 +16,7 @@ import recall from "../games/recall.js";
 import yesno from "../games/yesno.js";
 import pairs from "../games/pairs.js";
 import expressions from "../games/expressions.js";
+import prefer from "../games/prefer.js";
 const functions = {
   recognition,
   memory,
@@ -30,6 +31,7 @@ const functions = {
   yesno,
   pairs,
   expressions,
+  prefer,
 };
 function create(stage, support = 0) {
   const dom = new JSDOM(
@@ -65,7 +67,28 @@ function create(stage, support = 0) {
     setCaregiverTip(text) {
       ctx.tip = text;
     },
-    markHelp() {},
+    markHelp() {
+      ctx.helped = true;
+    },
+    skip: null,
+    setSkip(fn) {
+      ctx.skip = fn;
+    },
+    // Les commandes du proche sont ajoutées sous le jeu (ici, dans le corps).
+    caregiverAction(label, fn) {
+      const b = document.createElement("button");
+      b.textContent = label;
+      b.className = "caregiver";
+      b.addEventListener("click", fn);
+      ctx.body.append(b);
+      return b;
+    },
+    accepted: 0,
+    accept(fn, message) {
+      ctx.accepted++;
+      ctx.success(fn, message);
+    },
+    sayings: [],
     reward() {},
     clearFeedback() {},
     setNext(fn) {
@@ -115,6 +138,22 @@ const FORBIDDEN =
   /\bfaux\b|erreur|raté|échec|perdu|mauvais|\bscore\b|\bpoints\b/i;
 
 const solvers = {
+  prefer(ctx) {
+    for (let i = 0; i < ctx.rules.rounds; i++) {
+      assert.equal(
+        ctx.body.querySelectorAll(".prefer-choices .choice").length,
+        2,
+      );
+      // Toute réponse convient, même « aucune des deux ».
+      const buttons = [...ctx.body.querySelectorAll("button")];
+      (i % 2
+        ? buttons.find((b) => b.textContent === "Aucune des deux")
+        : buttons[0]
+      ).click();
+      next(ctx);
+    }
+    assert.equal(ctx.difficulties, 0);
+  },
   yesno(ctx) {
     for (let i = 0; i < ctx.rules.rounds; i++) {
       const b = visible(ctx).filter((b) => b.dataset.correct);
@@ -323,7 +362,7 @@ test("Une photo personnelle est prioritaire pour reconnaissance, lieu, son et pu
     const p = {
       id: "custom-test",
       name: "Notre lac",
-      category: name === "sorting" ? "Objets" : "Lieux",
+      category: ["sorting", "recognition"].includes(name) ? "Objets" : "Lieux",
       place: "Chez nous",
       hint: "Le lac où nous allions",
       src: "blob:https://example.org/123",
@@ -334,5 +373,85 @@ test("Une photo personnelle est prioritaire pour reconnaissance, lieu, son et pu
     ctx.photos = [p, ...PHOTOS];
     functions[name](ctx);
     assert.ok(ctx.body.querySelector('img[src="' + p.src + '"]'));
+  }
+});
+test("Photos de proches : jamais à nommer, jamais découpées, toujours présentées avec leur nom", () => {
+  const relative = {
+    id: "custom-proche",
+    name: "Delphine",
+    category: "Proches",
+    place: "",
+    hint: "",
+    src: "blob:https://example.org/proche",
+    personal: true,
+    ready: true,
+  };
+  for (const name of [
+    "recognition",
+    "puzzle",
+    "memory",
+    "yesno",
+    "sorting",
+    "odd",
+  ]) {
+    const ctx = create("modere");
+    ctx.photos = [relative, ...PHOTOS];
+    functions[name](ctx);
+    assert.ok(!ctx.body.querySelector(`img[src="${relative.src}"]`), name);
+  }
+  const ctx = create("avance");
+  ctx.photos = [relative, ...PHOTOS];
+  places(ctx);
+  assert.ok(ctx.body.querySelector(`img[src="${relative.src}"]`));
+  assert.equal(document.querySelector("h1").textContent, "Voici Delphine");
+  assert.doesNotMatch(ctx.body.textContent, /qui est-ce/i);
+});
+test("Expressions : la fin s'ajoute avec la bonne espace", () => {
+  for (let i = 0; i < 20; i++) {
+    const ctx = create("leger");
+    expressions(ctx);
+    correctButton(ctx).click();
+    const text = ctx.body.querySelector(".proverb").textContent;
+    const p = PROVERBS.find((x) => text.startsWith(x.start.replace(/…$/, "")));
+    assert.ok(p, text);
+    // Une espace entre le début et la fin, sauf après une apostrophe (« s’assemble »).
+    const sep = /[’']…$/.test(p.start) ? "" : " ";
+    assert.equal(text, `${p.start.replace(/…$/, "")}${sep}${p.end}.`);
+    assert.match(text, /\.$/);
+  }
+});
+test("À l'écoute : aucun paysage parmi les autres propositions", () => {
+  for (let i = 0; i < 30; i++) {
+    const ctx = create("leger");
+    sounds(ctx);
+    const imgs = [...ctx.body.querySelectorAll(".choice")].map(photoOf);
+    const target = imgs.find(
+      (p) =>
+        p.sound &&
+        ctx.body.querySelector(`[data-correct="true"] img[src="${p.src}"]`),
+    );
+    for (const p of imgs)
+      if (p !== target)
+        assert.ok(!["Lieux", "Nature"].includes(p.category), p.id);
+  }
+});
+test("Chaque activité à étapes propose « Autre photo »", () => {
+  for (const name of [
+    "recognition",
+    "sorting",
+    "places",
+    "sounds",
+    "money",
+    "odd",
+    "yesno",
+    "pairs",
+    "expressions",
+    "prefer",
+  ]) {
+    const ctx = create("modere");
+    functions[name](ctx);
+    assert.equal(typeof ctx.skip, "function", name);
+    ctx.skip();
+    assert.ok(ctx.body.children.length, name);
   }
 });

@@ -26,7 +26,17 @@ const CUES = {
   auras: "au…",
 };
 export default function expressions(ctx) {
-  const list = shuffle(PROVERBS);
+  // Les expressions de la famille, saisies par l'aidant, passent en premier.
+  // Leurs autres propositions sont prises parmi les fins des proverbes.
+  const family = (ctx.sayings || []).map((x) => ({
+    start: /…$/.test(x.start) ? x.start : `${x.start}…`,
+    end: x.end,
+    others: shuffle(
+      PROVERBS.map((p) => p.end).filter((e) => e !== x.end),
+    ).slice(0, 3),
+    family: true,
+  }));
+  const list = [...shuffle(family), ...shuffle(PROVERBS)];
   let round = 0;
   function show() {
     if (round >= ctx.rules.rounds) return ctx.complete();
@@ -62,7 +72,9 @@ export default function expressions(ctx) {
       item.end,
       ...shuffle(item.others).slice(0, ctx.rules.choices - 1),
     ]);
-    const full = item.start.replace(/…$/, "") + item.end + ".";
+    // « fait son… » + « nid » → « fait son nid » ; « tu l’… » + « auras » → « tu l’auras ».
+    const head = item.start.replace(/…$/, "").trimEnd();
+    const full = `${head}${/[’']$/.test(head) ? "" : " "}${item.end}.`;
     for (const word of options) {
       const b = button(word, () => {
         if (answered) return;
@@ -88,6 +100,16 @@ export default function expressions(ctx) {
       b.dataset.correct = String(word === item.end);
       choices.append(b);
     }
+    ctx.caregiverAction("La fin a été dite ensemble", () => {
+      if (answered) return;
+      answered = true;
+      for (const c of choices.children) c.disabled = true;
+      start.textContent = full;
+      ctx.accept(() => {
+        round++;
+        show();
+      }, `Merci. « ${full} » Une variante de la famille compte tout autant.`);
+    });
     const panel = document.createElement("div");
     panel.className = "photo-question";
     const side = document.createElement("div");
@@ -96,6 +118,10 @@ export default function expressions(ctx) {
     panel.append(card, side);
     ctx.body.append(panel);
     let hints = 0;
+    ctx.setSkip(() => {
+      round++;
+      show();
+    });
     ctx.setHint(() => {
       hints++;
       if (hints === 1)

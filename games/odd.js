@@ -69,6 +69,10 @@ export default function odd(ctx) {
     }
     ctx.body.append(choices);
     let hints = 0;
+    ctx.setSkip(() => {
+      round++;
+      show();
+    });
     ctx.setHint(() => {
       hints++;
       if (hints === 1)

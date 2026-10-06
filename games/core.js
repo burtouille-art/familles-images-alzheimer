@@ -177,7 +177,8 @@ export function adapt(state, kind) {
   if (kind === "success") {
     s.difficulties = 0;
     s.streak++;
-    if (s.streak >= 3) {
+    // Le soutien n'est réduit qu'après cinq réussites sans aide d'affilée.
+    if (s.streak >= 5) {
       s.support = Math.max(0, s.support - 1);
       s.streak = 0;
     }

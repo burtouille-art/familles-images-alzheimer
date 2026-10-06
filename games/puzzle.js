@@ -1,6 +1,9 @@
 import { puzzleOrder, button, image } from "./core.js";
 export default function puzzle(ctx) {
-  const photo = ctx.prioritize(ctx.photos)[0];
+  // Un paysage ou un objet, jamais le visage d'un proche découpé en morceaux.
+  const photo = ctx.prioritize(
+    ctx.photos.filter((p) => p.category !== "Proches"),
+  )[0];
   const [rows, cols] = ctx.rules.puzzle;
   const order = puzzleOrder(rows * cols);
   let selected = null;

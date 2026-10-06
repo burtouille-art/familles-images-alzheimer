@@ -36,8 +36,8 @@ export default function money(ctx) {
       for (let i = 0; i < q.count; i++) {
         const f = document.createElement("figure"),
           im = document.createElement("img");
-        im.src = "assets/photos/centime.jpg";
-        im.alt = "Une pièce de 1 euro au premier plan";
+        im.src = "assets/photos/piece-1-euro.jpg";
+        im.alt = "Une pièce de 1 euro";
         const cap = document.createElement("figcaption");
         cap.textContent = "1 €";
         f.append(im, cap);
@@ -96,6 +96,10 @@ export default function money(ctx) {
     }
     layout.append(left, options);
     ctx.body.append(layout);
+    ctx.setSkip(() => {
+      round++;
+      show();
+    });
     ctx.setHint(() =>
       q.type === "count"
         ? `${q.count} pièce${q.count > 1 ? "s" : ""} de 1 €, cela fait ${euro.format(q.answer)}.`

@@ -552,7 +552,7 @@ export const GAMES = [
   },
   {
     id: "places",
-    title: "Un lieu, un souvenir",
+    title: "Une photo, un souvenir",
     domain: "Échange · réminiscence",
     description: "Regarder une photo et en parler, sans bonne réponse.",
     cover: "lac",
@@ -612,6 +612,13 @@ export const GAMES = [
     domain: "Langage · proverbes",
     description: "Finir un proverbe bien connu, ensemble.",
     cover: "chat",
+  },
+  {
+    id: "prefer",
+    title: "Ce qui me plaît",
+    domain: "Choix · échange",
+    description: "Choisir entre deux photos, sans bonne réponse.",
+    cover: "plage",
   },
   {
     id: "puzzle",
@@ -803,7 +810,7 @@ export const PAIRS = [
     from: "chapeau",
     to: "plage",
     why: "Le chapeau de paille protège du soleil à la plage.",
-    not: ["bonnet", "chou", "brosse"],
+    not: ["oignon", "chou", "brosse"],
   },
   {
     from: "bonnet",

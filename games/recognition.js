@@ -4,7 +4,11 @@ import { image, button, choiceSet, cueLadder, lower } from "./core.js";
 // doigt ou touchée parmi des propositions. Aucune reconnaissance vocale.
 export default function recognition(ctx) {
   const photos = ctx.prioritize(
-    ctx.photos.filter((p) => p.personal || p.category !== "Lieux"),
+    // Les photos de proches servent d'abord aux échanges (« Une photo, un
+    // souvenir ») : on ne demande pas de retrouver le nom d'un proche.
+    ctx.photos.filter(
+      (p) => !["Lieux", "Proches", "Nature"].includes(p.category),
+    ),
   );
   let round = 0;
   function show() {
@@ -27,9 +31,9 @@ export default function recognition(ctx) {
     layout.className = "photo-question";
     const side = document.createElement("div");
     side.className = "answer-panel";
-    const cues = document.createElement("ol");
+    // Une seule aide affichée à la fois ; les précédentes restent consultables.
+    const cues = document.createElement("div");
     cues.className = "cue-list";
-    cues.setAttribute("aria-label", "Aides déjà données");
     const choices = document.createElement("div");
     choices.className = "choices text-choices";
     const actions = document.createElement("div");
@@ -38,18 +42,27 @@ export default function recognition(ctx) {
     layout.append(image(p, "big-photo", "Photo à nommer"), side);
     ctx.body.append(layout);
 
+    function cueBox(c) {
+      const box = document.createElement("p");
+      box.className = `cue cue-${c.kind}`;
+      const b = document.createElement("strong");
+      b.textContent = c.label;
+      box.append(b, document.createTextNode(c.text));
+      return box;
+    }
     function paintCues() {
       cues.replaceChildren();
-      for (const c of ladder.slice(0, level)) {
-        if (c.kind === "choices") continue;
-        const li = document.createElement("li");
-        li.className = `cue cue-${c.kind}`;
-        const b = document.createElement("strong");
-        b.textContent = c.label;
-        li.append(b, document.createTextNode(c.text));
-        cues.append(li);
+      const given = ladder.slice(0, level).filter((c) => c.kind !== "choices");
+      if (given.length) cues.append(cueBox(given.at(-1)));
+      if (given.length > 1) {
+        const more = document.createElement("details");
+        more.className = "cue-history";
+        const sum = document.createElement("summary");
+        sum.textContent = "Revoir les aides précédentes";
+        more.append(sum, ...given.slice(0, -1).map(cueBox));
+        cues.append(more);
       }
-      cues.hidden = !cues.children.length;
+      cues.hidden = !given.length;
     }
     function done(message) {
       if (answered) return;
@@ -107,13 +120,6 @@ export default function recognition(ctx) {
       paintCues();
       return c.text;
     }
-    const found = button(
-      "Le nom a été dit ou montré",
-      () => done("Merci. Le nom a été trouvé ensemble."),
-      "quiet",
-    );
-    found.title =
-      "Pour le proche : la personne a dit, montré ou désigné le bon nom.";
     const help = button(
       "Une aide pour trouver",
       () => {
@@ -133,8 +139,23 @@ export default function recognition(ctx) {
     );
     if (advanced || ctx.rules.support) {
       showChoices(2);
-      actions.append(help, found);
-    } else actions.append(propose, help, found);
+      actions.append(help);
+    } else actions.append(propose, help);
+    // Le proche valide une réponse dite, un geste ou un mot approchant.
+    ctx.caregiverAction("Le nom a été dit ou montré", () => {
+      if (answered) return;
+      answered = true;
+      for (const b of choices.querySelectorAll("button")) b.disabled = true;
+      actions.replaceChildren();
+      ctx.accept(() => {
+        round++;
+        show();
+      }, "Merci. Le nom a été trouvé ensemble.");
+    });
+    ctx.setSkip(() => {
+      round++;
+      show();
+    });
     paintCues();
     ctx.setHint(() => nextCue());
     ctx.setCaregiverTip(

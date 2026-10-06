@@ -128,6 +128,10 @@ export default function sorting(ctx) {
         if (b.dataset.correct === "true") b.classList.add("suggested");
       return `Ensemble : ${lower(correct)}.`;
     }
+    ctx.setSkip(() => {
+      round++;
+      show();
+    });
     ctx.setHint(hintFor);
     ctx.setCaregiverTip(
       "Lisez la question à voix haute. Vous pouvez reformuler (« On la mange ? On la porte ? »), mimer un geste ou montrer la réponse.",

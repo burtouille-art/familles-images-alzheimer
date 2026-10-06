@@ -75,6 +75,10 @@ export default function sequence(ctx) {
     repeat.textContent = step.say;
     ctx.body.append(repeat, choices);
     let hints = 0;
+    ctx.setSkip(() => {
+      index++;
+      show();
+    });
     ctx.setHint(() => {
       hints++;
       if (hints === 1) return `${step.say} ${target.context || ""}`.trim();

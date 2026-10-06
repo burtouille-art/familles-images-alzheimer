@@ -1,6 +1,13 @@
 import { image, button } from "./core.js";
 // « Un lieu, un souvenir » : échanger autour d'une photo, sans réponse attendue.
 // Toutes les réponses sont accueillies ; rien n'est compté comme une erreur.
+// Questions douces pour une photo de proche : aucune ne demande un fait précis.
+const RELATIVE_TALK = [
+  "Cette photo vous fait-elle sourire ?",
+  "Qu’aimez-vous faire ensemble ?",
+  "Cela vous rappelle-t-il un bon moment ?",
+  "Que diriez-vous de cette photo ?",
+];
 export default function places(ctx) {
   const photos = ctx.prioritize(
     ctx.photos.filter(
@@ -18,16 +25,20 @@ export default function places(ctx) {
     if (round >= ctx.rules.rounds) return ctx.complete();
     const p = photos[round % photos.length];
     const advanced = ctx.stage === "avance";
+    const relative = p.personal && p.category === "Proches";
+    // Pour un proche, le nom est donné d'emblée : on ne demande jamais
+    // « Qui est-ce ? ». On commente, puis on invite à parler.
     ctx.prepare(
-      "Un lieu, un souvenir",
-      advanced
+      relative ? `Voici ${p.name}` : "Une photo, un souvenir",
+      relative || advanced
         ? "Regardons cette photo ensemble."
         : "Regardez cette photo. Qu’est-ce qu’elle vous évoque ?",
       round + 1,
       ctx.rules.rounds,
     );
     const layout = document.createElement("div");
-    layout.className = "photo-question";
+    // Une photo de proche s'affiche en grand : c'est elle qui compte.
+    layout.className = relative ? "photo-question relative" : "photo-question";
     const figure = document.createElement("figure");
     figure.className = "named-photo";
     figure.append(
@@ -42,13 +53,16 @@ export default function places(ctx) {
       ? [p.name, p.place].filter(Boolean).join(" · ")
       : p.place;
     figure.append(cap);
+    if (relative) cap.textContent = p.place ? `${p.name} · ${p.place}` : p.name;
     const side = document.createElement("div");
     side.className = "answer-panel";
     const question = document.createElement("p");
     question.className = "talk";
-    question.textContent = p.personal
-      ? "Qu’est-ce que cette photo vous rappelle ?"
-      : p.talk || "Qu’est-ce que cette photo vous évoque ?";
+    question.textContent = relative
+      ? RELATIVE_TALK[round % RELATIVE_TALK.length]
+      : p.personal
+        ? "Qu’est-ce que cette photo vous rappelle ?"
+        : p.talk || "Qu’est-ce que cette photo vous évoque ?";
     side.append(question);
     if (p.personal && p.hint) {
       const memo = document.createElement("p");
@@ -59,7 +73,7 @@ export default function places(ctx) {
     const choices = document.createElement("div");
     choices.className = "choices text-choices";
     const options = p.options || [
-      "J’ai envie d’en parler",
+      relative ? "Parlons-en" : "J’ai envie d’en parler",
       "Regarder simplement",
     ];
     let chosen = false;
@@ -77,20 +91,18 @@ export default function places(ctx) {
       choices.append(b);
     }
     side.append(choices);
-    side.append(
-      button(
-        "Nous en avons parlé",
-        () => {
-          if (chosen) return;
-          chosen = true;
-          ctx.share(() => {
-            round++;
-            show();
-          }, "Merci pour cet échange.");
-        },
-        "quiet",
-      ),
-    );
+    ctx.caregiverAction("Nous en avons parlé", () => {
+      if (chosen) return;
+      chosen = true;
+      ctx.share(() => {
+        round++;
+        show();
+      }, "Merci pour cet échange.");
+    });
+    ctx.setSkip(() => {
+      round++;
+      show();
+    });
     layout.append(figure, side);
     ctx.body.append(layout);
     const prompts = [

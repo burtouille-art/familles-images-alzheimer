@@ -1,6 +1,6 @@
 # MémoirePartage
 
-Une PWA gratuite et sans publicité pour partager des activités autour de la communication, des mots et des souvenirs : treize jeux, 46 vraies photos, trois profils d'accompagnement et tout le temps nécessaire. Téléphone, tablette ou ordinateur ; aucune inscription, aucun serveur applicatif, aucun service payant, aucune clé API.
+Une PWA gratuite et sans publicité pour partager des activités autour de la communication, des mots et des souvenirs : quatorze activités, 46 vraies photos intégrées, trois profils d'accompagnement et tout le temps nécessaire. Téléphone, tablette ou ordinateur ; aucune inscription, aucun serveur applicatif, aucun service payant, aucune clé API.
 
 **L’application n’est ni un outil diagnostique, ni un test neuropsychologique validé, ni un traitement de la maladie d’Alzheimer. Elle ne garantit aucune amélioration ni aucun ralentissement de la maladie.** Les profils « léger », « modéré » et « avancé » sont des réglages choisis par l’aidant, pas une évaluation médicale. Pour choisir des activités appropriées à une personne, demander conseil à son équipe soignante.
 
@@ -45,22 +45,23 @@ Les champs **« Où la voit-on ? »** et **« À quoi sert-elle, ou qui est-ce ?
 
 Placer un JPG dans `assets/photos/`, ajouter ses métadonnées à `games/data.js` et son crédit à `assets/CREDITS.md`. Vérifier son sujet et sa licence. Puis exécuter `python3 scripts/build-cache.py` pour actualiser la liste du cache et sa version. Les images intégrées ne doivent contenir aucune donnée privée. Les photos de famille se chargent dans l’espace aidant, **pas dans GitHub**.
 
-## Les treize activités
+## Les quatorze activités
 
 | Jeu | Ce que l’on fait ensemble | Léger / modéré / avancé |
 |---|---|---|
 | **Le mot juste** | Nommer un objet familier. Réponse dite à voix haute (validée par le proche), montrée du doigt ou touchée parmi des propositions | 10 / 6 / 3 photos ; propositions à la demande (4 / 3), d’emblée 2 au profil avancé |
 | **Ça sert à quoi ?** | Associer une photo nommée à sa famille, son usage ou l’endroit où on la trouve | 4 / 3 / 2 propositions ; toucher ou glisser-déposer |
 | **Une consigne à la fois** | Suivre de courtes consignes dans une scène du quotidien (six scènes : petit-déjeuner, sortir, marché, s’habiller pour l’hiver, soupe de légumes, salade de fruits) | 4 / 3 / 2 consignes et autant de photos ; une seule action par consigne |
-| **Un lieu, un souvenir** | Regarder une photo et en parler. **Aucune bonne réponse** : choix de préférence ou « Nous en avons parlé » | 10 / 6 / 3 photos ; photos personnelles en priorité, souvenir noté affiché pour le proche |
+| **Une photo, un souvenir** | Regarder une photo et en parler. **Aucune bonne réponse** : choix de préférence ou « Nous en avons parlé ». Pour une photo de proche, le prénom est donné d’emblée (« Voici Delphine ») : on ne demande jamais « Qui est-ce ? » | 10 / 6 / 3 photos ; photos personnelles en priorité, souvenir noté affiché pour le proche |
 | **À la boulangerie** | Compter des pièces ou rendre la monnaie dans une situation d’achat | Avancé : 1 à 3 pièces et 2 choix ; modéré : petits montants ; léger : montants un peu plus élevés |
 | **À l’écoute** | Écouter un son réel, puis toucher sa photo | Aucune lecture automatique ; arrêt possible |
-| **Les photos jumelles** | Réunir des paires | 8 / 4 / 2 paires ; observation préalable au profil avancé |
+| **Les photos jumelles** | Réunir des paires | 8 / 4 / 2 paires ; profils modéré et avancé : « doubles à vue », photos toujours visibles, les cacher reste un choix |
 | **Chacun sa famille** | Trouver la photo d’une famille donnée | Modéré et avancé : consigne positive (« Touchez le fruit ») ; léger : trouver la photo d’une autre famille |
 | **Dans mon panier** | Observer, nommer, puis retrouver des photos | 7 / 4 / 3 photos ; une photo parmi deux au profil avancé |
 | **Oui ou non ?** | Répondre par oui ou non à une question simple sur une photo nommée (« Est-ce un fruit ? ») ; un signe de tête suffit | 10 / 6 / 3 questions ; toujours deux réponses ; frontières ambiguës (fruit / légume) exclues |
 | **Ça va ensemble** | Trouver ce qui va avec une photo (le lapin et les carottes, le bonnet et la montagne) ; 12 associations écrites pour l’application | 4 / 3 / 2 photos ; distracteurs choisis à la main, sans lien plausible |
 | **Les expressions de toujours** | Finir un proverbe connu (« Petit à petit, l’oiseau fait son… ») ; 20 proverbes du domaine public. Le langage automatique est souvent bien préservé : c’est un plaisir à partager | 4 / 3 / 2 propositions ; « Écouter le début » ; question de souvenir après chaque proverbe |
+| **Ce qui me plaît** | Choisir entre deux photos de même nature ; « les deux » et « aucune » sont des réponses | Aucune bonne réponse ; jamais de choix entre deux proches |
 | **La photo à réunir** | Recomposer une photo, modèle visible | 9 / 6 / 2 pièces |
 
 Les identifiants techniques des jeux n’ont pas changé : historique et adaptations des versions précédentes sont conservés.
@@ -122,14 +123,14 @@ Les tests cliniques (BNT, MMSE, 5 mots, Figure de Rey…) ne sont ni reproduits 
 6. **Cerbone B, Massman PJ, Woods SP, York MK (2020)**. Benefit of phonemic cueing on confrontation naming in Alzheimer’s disease. *The Clinical Neuropsychologist*, 34(2). [Notice](https://scholars.uthscsa.edu/en/publications/benefit-of-phonemic-cueing-on-confrontation-naming-in-alzheimers-/).
 7. **Folder N et al. (2024)**. Effectiveness and characteristics of communication partner training programs for families of people with dementia. *The Gerontologist*, 64(4), gnad095 : 30 études. [Article](https://academic.oup.com/gerontologist/article/64/4/gnad095/7223749).
 8. **Eggenberger E, Heimerl K, Bennett MI (2013)**. Communication skills training in dementia care. *International Psychogeriatrics*. [PubMed 23116547](https://pubmed.ncbi.nlm.nih.gov/23116547/).
-9. **NICE NG97**, recommandation 1.5.5 (stimulation cognitive en groupe, démence légère à modérée). [Recommandations](https://www.nice.org.uk/guidance/ng97/chapter/Recommendations).
+9. **NICE NG97**, recommandations 1.4.3 (stimulation cognitive **en groupe**, démence légère à modérée), 1.4.4 (réminiscence en groupe) et 1.4.6 (ne pas proposer d’entraînement cognitif pour traiter une maladie d’Alzheimer légère à modérée), numérotation vérifiée le 6 octobre 2026. [Recommandations](https://www.nice.org.uk/guidance/ng97/chapter/Recommendations).
 
 ## Ergonomie (version 3)
 
 Repères pensés pour une personne vivant avec une maladie d’Alzheimer, du stade léger au stade avancé, et pour son proche :
 
 - **Accueil qui oriente** : « Bonjour » ou « Bonsoir » selon l’heure, avec le prénom si l’aidant l’a indiqué, et la date du jour en toutes lettres. Une seule proposition mise en avant (une photo personnelle si possible), puis les activités.
-- **Cartes entières cliquables** : toute la carte (photo, titre, phrase) est un seul grand bouton. Au profil avancé, cinq activités douces d’abord (Un lieu, un souvenir ; Oui ou non ? ; Les expressions de toujours ; À l’écoute ; Le mot juste), les autres sur demande.
+- **Cartes entières cliquables** : toute la carte (photo, titre, phrase) est un seul grand bouton. L’accueil montre la **séance préparée** par l’aidant (deux à six activités choisies dans l’espace aidant). Sans choix, au profil avancé, cinq activités douces d’abord (Une photo, un souvenir ; Ce qui me plaît ; Les expressions de toujours ; Oui ou non ? ; Le mot juste), les autres sur demande.
 - **Un écran de jeu toujours construit pareil** : en haut « Arrêter », le nom de l’activité et la progression en points (pas de compteur) ; puis la consigne ; puis la photo et les réponses.
 - **Le dock**, fixé en bas de l’écran : le retour sur la réponse, le grand bouton « Continuer tranquillement », puis Indice, Lire et Pause. Ils sont toujours au même endroit et restent visibles sans défiler.
 - **Bonne réponse marquée par une coche, une bordure et un texte**, jamais par la couleur seule. Les propositions écartées restent lisibles (contraste conservé).
@@ -140,6 +141,23 @@ Repères pensés pour une personne vivant avec une maladie d’Alzheimer, du sta
 - **Police Atkinson Hyperlegible** (Braille Institute, licence SIL OFL 1.1), conçue pour distinguer les lettres semblables ; intégrée à l’application et disponible hors connexion. Pas d’italique ni de majuscules continues.
 - **Contraste renforcé** (noir sur blanc, bordures épaisses) en option ; espaces insécables devant « ? » et « ! » pour éviter un signe isolé en début de ligne.
 - **Espace aidant en cinq sections** numérotées, avec une navigation par onglets : profil, affichage et sons, photos, sauvegarde, conseils.
+
+## Version 5 : corrections issues de l’audit du 6 octobre 2026
+
+- **Aide conservée pour toute l’étape** : revoir le panier, demander un indice puis réussir n’est plus compté « sans aide ». Le soutien n’est retiré qu’après **cinq** réussites sans aide d’affilée (au lieu de trois), et l’aidant peut **garder l’aide renforcée en permanence**.
+- **Le proche peut accueillir une réponse valable** : « Le nom a été dit ou montré », « La fin a été dite ensemble », « Un autre lien a été expliqué », « Nous en avons parlé ». Ces commandes sont regroupées dans un encadré « Pour le proche », séparé des réponses de la personne ; elles comptent comme une réussite accompagnée, sans retirer le soutien.
+- **Conseils au proche conservés** à chaque étape (ils disparaissaient après « Commencer »).
+- **« Lire »** lit la consigne, la légende ou le proverbe, puis les réponses proposées.
+- **Une seule aide affichée à la fois** dans « Le mot juste » ; les précédentes restent consultables (« Revoir les aides précédentes »).
+- **« Autre »** (photo suivante) dans toutes les activités à étapes, pour passer sans répondre.
+- **Photos de proches** : jamais à nommer, jamais découpées en puzzle ni utilisées comme cartes de memory ; présentées avec leur prénom dans « Une photo, un souvenir ».
+- **Pièce de 1 €** isolée par détourage (la pile de pièces de l’arrière-plan a été retirée) ; dans « À l’écoute », aucun paysage parmi les autres propositions (un bruit d’eau irait avec une plage comme avec un lac).
+- « Ça va ensemble » : le bonnet n’est plus un distracteur du chapeau.
+- **Expressions de la famille** saisies par l’aidant (« début | fin »), proposées en premier. Correction : il manquait une espace dans la phrase complétée (« fait sonnid »).
+- **Séance préparée** sur l’accueil ; **observation facultative** en fin de séance (moment apprécié, fatigue, à reprendre…), jamais de pourcentage.
+- Cartes d’accueil : vrais boutons dans des éléments de liste (le rôle « bouton » n’est plus écrasé).
+- **Packs de photos** : un fichier de sauvegarde sans réglages s’ajoute aux photos existantes sans rien remplacer.
+- Liste des photos personnelles repliable, lisible même avec 50 photos.
 
 ## Accessibilité et données
 
@@ -167,9 +185,9 @@ npm test
 python3 scripts/build-cache.py
 ```
 
-101 tests automatisés (Node + jsdom) : règles des profils, ordre des aides, indices phonologiques, absence de propositions ambiguës, consignes courtes, lieux sans recouvrement, noms qui se recouvrent (un jean est un pantalon), associations, proverbes, questions oui/non sans ambiguïté, migration des réglages, argent, puzzles, médias, contrastes, cache, et parcours complets des treize jeux dans les trois profils, avec et sans soutien supplémentaire, en vérifiant l’absence de vocabulaire d’échec. Un parcours de l’application assemblée vérifie la migration, la pause, la reprise et l’arrêt anticipé. Après toute modification des médias ou du code, régénérer le cache. Tester également sur téléphone réel, clavier, zoom, avec un aidant et sans connexion ; une simulation DOM ne remplace pas une évaluation d’accessibilité ni une validation clinique.
+111 tests automatisés (Node + jsdom) : règles des profils, ordre des aides, indices phonologiques, absence de propositions ambiguës, consignes courtes, lieux sans recouvrement, noms qui se recouvrent (un jean est un pantalon), associations, proverbes, questions oui/non sans ambiguïté, migration des réglages, argent, puzzles, médias, contrastes, cache, et parcours complets des quatorze activités dans les trois profils, avec et sans soutien supplémentaire, en vérifiant l’absence de vocabulaire d’échec. Un parcours de l’application assemblée vérifie la migration, la pause, la reprise et l’arrêt anticipé. Après toute modification des médias ou du code, régénérer le cache. Tester également sur téléphone réel, clavier, zoom, avec un aidant et sans connexion ; une simulation DOM ne remplace pas une évaluation d’accessibilité ni une validation clinique.
 
-Vérifié aussi dans Chromium (Playwright), téléphone 320, 360 et 390 px de large et ordinateur 1366 px, polices 24 et 32 px : les treize jeux terminés dans les trois profils (39 parcours par format d’écran), pause puis reprise identique, absence de débordement horizontal, commandes ≥ 60 × 60 px, texte ≥ 24 px, photos chargées, navigation au clavier et Échap ; import d’une photo et d’un son personnels, priorité dans les jeux, export puis restauration après effacement, sauvegarde version 1 ; mode hors connexion après le premier chargement (82 ressources en cache : photos, sons et police).
+Vérifié aussi dans Chromium (Playwright), téléphone 320, 360 et 390 px de large et ordinateur 1366 px, polices 24 et 32 px : les quatorze activités terminées dans les trois profils (42 parcours par format d’écran), pause puis reprise identique, absence de débordement horizontal, commandes ≥ 60 × 60 px, texte ≥ 24 px, photos chargées, navigation au clavier et Échap ; import d’une photo et d’un son personnels, priorité dans les jeux, export puis restauration après effacement, sauvegarde version 1 ; mode hors connexion après le premier chargement (82 ressources en cache : photos, sons et police).
 
 **Reste à vérifier :** un essai sur téléphone Android réel (installation, son, lecture vocale), avec TalkBack, et surtout avec des personnes concernées, leurs proches et un·e orthophoniste. La pertinence des photos de démonstration et des formulations doit être relue par un professionnel.
 

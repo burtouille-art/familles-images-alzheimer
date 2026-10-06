@@ -4,6 +4,30 @@
 // de sécurité des anciens réglages est gardée sous BACKUP_KEY.
 const KEY = "memoire-partage-v1";
 export const SCHEMA = 2;
+export const GAME_IDS = [
+  "recognition",
+  "memory",
+  "places",
+  "sorting",
+  "sequence",
+  "sounds",
+  "money",
+  "puzzle",
+  "odd",
+  "recall",
+  "yesno",
+  "pairs",
+  "expressions",
+  "prefer",
+];
+// Observations facultatives du proche, sans valeur médicale.
+export const OBSERVATIONS = [
+  "Moment apprécié",
+  "Échange agréable",
+  "Un peu de fatigue",
+  "Activité à reprendre",
+  "Plutôt à éviter",
+];
 export const BACKUP_KEY = "memoire-partage-v1-copie-avant-schema-2";
 export const defaults = {
   schema: SCHEMA,
@@ -16,6 +40,9 @@ export const defaults = {
   contrast: false,
   rest: true,
   name: "",
+  supportLock: false,
+  favorites: null,
+  sayings: [],
   variants: {},
   adaptation: {},
   history: [],
@@ -76,7 +103,7 @@ export function validatePreferences(raw = {}) {
             Object.entries(raw.adaptation)
               .filter(
                 ([k, v]) =>
-                  /^(leger|modere|avance)-(recognition|memory|places|sorting|sequence|sounds|money|puzzle|odd|recall|yesno|pairs|expressions)$/.test(
+                  /^(leger|modere|avance)-(recognition|memory|places|sorting|sequence|sounds|money|puzzle|odd|recall|yesno|pairs|expressions|prefer)$/.test(
                     k,
                   ) &&
                   v &&
@@ -86,7 +113,7 @@ export function validatePreferences(raw = {}) {
                 k,
                 {
                   support: v.support === 1 ? 1 : 0,
-                  streak: Math.min(2, Math.max(0, Number(v.streak) || 0)),
+                  streak: Math.min(4, Math.max(0, Number(v.streak) || 0)),
                   difficulties: Math.min(
                     1,
                     Math.max(0, Number(v.difficulties) || 0),
@@ -95,10 +122,40 @@ export function validatePreferences(raw = {}) {
               ]),
           )
         : {},
+    supportLock: raw.supportLock === true,
+    // Séance préparée : 1 à 6 activités choisies par l'aidant, ou null.
+    favorites:
+      Array.isArray(raw.favorites) && raw.favorites.length
+        ? [...new Set(raw.favorites.filter((g) => GAME_IDS.includes(g)))].slice(
+            0,
+            6,
+          )
+        : null,
+    // Expressions familiales : { start, end }, textes courts.
+    sayings: Array.isArray(raw.sayings)
+      ? raw.sayings
+          .filter(
+            (x) =>
+              x &&
+              typeof x.start === "string" &&
+              typeof x.end === "string" &&
+              x.start.trim() &&
+              x.end.trim() &&
+              x.start.length <= 120 &&
+              x.end.length <= 60,
+          )
+          .map((x) => ({ start: x.start.trim(), end: x.end.trim() }))
+          .slice(0, 30)
+      : [],
     history: Array.isArray(raw.history)
       ? raw.history
           .filter(
             (x) => x && typeof x.game === "string" && Number.isFinite(x.date),
+          )
+          .map((x) =>
+            OBSERVATIONS.includes(x.note)
+              ? { game: x.game, date: x.date, note: x.note }
+              : { game: x.game, date: x.date },
           )
           .slice(-300)
       : [],

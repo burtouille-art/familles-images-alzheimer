@@ -62,7 +62,10 @@ test("Les aides augmentent sans jamais changer le stade", () => {
   assert.equal(s.support, 1);
   for (let i = 0; i < 30; i++) s = adapt(s, "help");
   assert.equal(s.support, 1);
+  // Trois réussites ne suffisent plus à retirer l'aide : il en faut cinq.
   for (let i = 0; i < 3; i++) s = adapt(s, "success");
+  assert.equal(s.support, 1);
+  for (let i = 0; i < 2; i++) s = adapt(s, "success");
   assert.equal(s.support, 0);
   assert.ok(!("stage" in s));
 });
@@ -107,8 +110,8 @@ test("Validation de sauvegarde et échappement des noms personnels", () => {
     "&lt;img onerror=&quot;x&quot;&gt;",
   );
 });
-test("Treize jeux et tous les médias intégrés existent", () => {
-  assert.equal(GAMES.length, 13);
+test("Quatorze jeux et tous les médias intégrés existent", () => {
+  assert.equal(GAMES.length, 14);
   assert.ok(PHOTOS.length >= 46);
   assert.equal(new Set(PHOTOS.map((p) => p.id)).size, PHOTOS.length);
   assert.equal(new Set(PHOTOS.map((p) => p.name)).size, PHOTOS.length);

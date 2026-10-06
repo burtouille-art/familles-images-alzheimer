@@ -118,7 +118,7 @@
           </div>
         </article>
         <div class="section-heading">
-          <h2 id="activities-title">Les activités</h2>
+          <h2 id="activities-title">Pour aujourd’hui</h2>
           <p id="activities-lead">Touchez celle qui vous plaît.</p>
         </div>
         <div
@@ -167,6 +167,13 @@
             <p id="instruction" class="instruction"></p>
           </div>
           <div id="game-body" class="game-body"></div>
+          <div id="caregiver-actions" class="caregiver-actions" hidden>
+            <p class="caregiver-actions-title">Pour le proche</p>
+            <div
+              id="caregiver-actions-list"
+              class="caregiver-actions-list"
+            ></div>
+          </div>
           <p id="guide" class="guide" hidden></p>
           <button
             id="tip-toggle"
@@ -213,6 +220,10 @@
                 <svg class="icon" aria-hidden="true">
                   <use href="#i-speak" /></svg
                 >Lire</button
+              ><button id="skip" class="tool" hidden>
+                <svg class="icon" aria-hidden="true">
+                  <use href="#i-arrow" /></svg
+                >Autre</button
               ><button id="pause" class="tool">
                 <svg class="icon" aria-hidden="true">
                   <use href="#i-pause" /></svg
@@ -252,7 +263,9 @@
           </p>
           <nav class="settings-nav" aria-label="Sections de l’espace aidant">
             <a href="#s-profil">Profil</a><a href="#s-affichage">Affichage</a
-            ><a href="#s-photos">Photos</a><a href="#s-sauvegarde">Sauvegarde</a
+            ><a href="#s-seance">Séance</a><a href="#s-photos">Photos</a
+            ><a href="#s-expressions">Expressions</a
+            ><a href="#s-sauvegarde">Sauvegarde</a
             ><a href="#s-conseils">Conseils</a>
           </nav>
         </div>
@@ -275,10 +288,25 @@
               autocomplete="off"
               placeholder="Par exemple : Jeanne"
           /></label>
+          <div class="toggle-row">
+            <label for="support-lock"
+              >Garder toujours l’aide renforcée (deux propositions, contexte
+              donné d’emblée)</label
+            ><input id="support-lock" type="checkbox" />
+          </div>
           <button id="reset-adaptation" class="quiet">
             Remettre les aides au niveau initial
           </button>
           <p id="settings-status" role="status"></p>
+        </section>
+        <section class="panel" id="s-seance" aria-labelledby="h-seance">
+          <h2 id="h-seance">La séance préparée</h2>
+          <p>
+            Choisissez deux à quatre activités à proposer sur l’accueil. Les
+            autres restent accessibles avec « Voir les autres activités ».
+          </p>
+          <div id="favorite-options" class="favorite-options"></div>
+          <p id="favorite-status" role="status"></p>
         </section>
         <section class="panel" id="s-affichage" aria-labelledby="h-affichage">
           <h2 id="h-affichage">2. L’affichage et les sons</h2>
@@ -334,6 +362,23 @@
           <div id="upload-status" role="status" aria-live="polite"></div>
           <div id="personal-photos" class="personal-list"></div>
         </section>
+        <section
+          class="panel"
+          id="s-expressions"
+          aria-labelledby="h-expressions"
+        >
+          <h2 id="h-expressions">Les expressions de la famille</h2>
+          <p>
+            Une phrase par ligne, avec une barre « | » avant la fin à retrouver.
+            Exemple : <strong>Il n’y a pas le feu | au lac</strong>. Elles sont
+            proposées en premier dans « Les expressions de toujours ».
+          </p>
+          <label class="text-field" for="sayings"
+            >Expressions familières (facultatif)
+            <textarea id="sayings" rows="5" maxlength="2400"></textarea>
+          </label>
+          <p id="sayings-status" role="status"></p>
+        </section>
         <section class="panel" id="s-sauvegarde" aria-labelledby="h-sauvegarde">
           <h2 id="h-sauvegarde">4. Les moments partagés et la sauvegarde</h2>
           <p id="session-count"></p>
@@ -387,6 +432,13 @@
         <h1 id="done-title" tabindex="-1">Merci pour ce moment.</h1>
         <p>Vous avez pris le temps de regarder, de jouer et d’échanger.</p>
         <p id="done-message"></p>
+        <div class="observation" id="observation">
+          <p class="observation-title">
+            Pour le proche, si vous le souhaitez : comment était ce moment ?
+          </p>
+          <div class="observation-options" id="observation-options"></div>
+          <p id="observation-status" role="status"></p>
+        </div>
         <p>Un temps de repos fait aussi partie du plaisir.</p>
         <button id="done-home" class="primary big">Revenir à l’accueil</button
         ><button id="replay" class="quiet">Refaire cette activité</button>

@@ -2,3 +2,6 @@ node_modules/
 *.log
 coverage/
 test-results/
+memoire-partage-*.json
+photos-famille*
+*-pack-photos*.json
