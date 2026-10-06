@@ -156,15 +156,19 @@ test("Application assemblée : migration, aidant, profil avancé, pause, reprise
     .click();
   assert.equal(saved().history[1].note, "Moment apprécié");
 
-  // L'accueil propose d'abord un échange autour d'une photo, sans réponse attendue.
+  // L'accueil propose d'abord « Ma famille », avec les photos intégrées :
+  // rien à installer, et le prénom est toujours donné.
   document.getElementById("done-home").click();
-  document.getElementById("start-photo").click();
-  assert.equal(
-    document.getElementById("game-title").textContent,
-    "Une photo, un souvenir",
+  assert.equal(document.getElementById("featured-title").textContent, "Ma famille");
+  assert.match(
+    document.getElementById("featured-photo").getAttribute("src"),
+    /^assets\/famille\/f\d\d\.jpg$/,
   );
+  document.getElementById("start-photo").click();
+  assert.match(document.getElementById("game-title").textContent, /^Voici \S/);
+  assert.ok(document.querySelector("#game-body .print img"));
   document.querySelector("#game-body .text-choices button").click();
-  assert.match(document.getElementById("feedback").textContent, /merci/i);
+  assert.match(document.getElementById("feedback").textContent, /temps|merci/i);
   document.getElementById("pause").click();
   document.getElementById("pause-home").click();
   assert.equal(document.getElementById("home").hidden, false);

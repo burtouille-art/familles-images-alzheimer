@@ -87,3 +87,7 @@ Le logo typographique « m. » et les icônes d’installation sont créés pour
 ## Police
 
 `assets/fonts/atkinson-400.woff2` et `atkinson-700.woff2` : **Atkinson Hyperlegible**, © 2020 Braille Institute of America, Inc., [SIL Open Font License 1.1](https://openfontlicense.org) (texte complet dans `assets/fonts/OFL.txt`), fichiers issus du paquet Fontsource 5.3.0, sous-ensemble latin.
+
+## Photos de famille
+
+`assets/famille/f01.jpg` à `f54.jpg` : photos privées de la famille, intégrées à la demande de la famille pour l’activité « Ma famille ». Recadrées et améliorées (recadrage sur les visages, super-résolution EDSR/FSRCNN non générative, léger contraste). **Tous droits réservés** : elles ne relèvent d’aucune licence libre du projet et ne doivent pas être réutilisées.

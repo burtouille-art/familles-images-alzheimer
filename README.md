@@ -17,7 +17,9 @@ Le dépôt contient directement `index.html` à la racine. Aucun build ni abonne
 
 Ce dépôt est public : GitHub Pages est disponible avec GitHub Free. Les conditions et limites d’hébergement peuvent évoluer. [Documentation officielle de la source de publication](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site).
 
-Les photos personnelles ajoutées **dans l’application** ne sont jamais envoyées dans le dépôt public. Ne pas déposer de photos privées dans GitHub.
+Les photos personnelles ajoutées **dans l’application** ne sont jamais envoyées dans le dépôt public.
+
+**Exception voulue par la famille :** 54 photos de famille (dossier `assets/famille/`, liste `games/family-data.js`) sont intégrées à l’application pour que « Ma famille » fonctionne dès l’ouverture, sans rien installer sur le téléphone. Elles sont donc **publiques** (dépôt et site), malgré la consigne `noindex` et `robots.txt` qui demandent aux moteurs de recherche de ne pas les indexer. Elles ne sont sous aucune licence libre : aucune réutilisation n’est autorisée. Les noms de fichiers ne contiennent pas les prénoms. Pour les retirer : supprimer le dossier et la liste, reconstruire le cache ; elles resteront toutefois dans l’historique Git.
 
 ## Installer et jouer hors connexion
 
@@ -43,13 +45,13 @@ Les champs **« Où la voit-on ? »** et **« À quoi sert-elle, ou qui est-ce ?
 
 ### Ajouter une photo de démonstration au code
 
-Placer un JPG dans `assets/photos/`, ajouter ses métadonnées à `games/data.js` et son crédit à `assets/CREDITS.md`. Vérifier son sujet et sa licence. Puis exécuter `python3 scripts/build-cache.py` pour actualiser la liste du cache et sa version. Les images intégrées ne doivent contenir aucune donnée privée. Les photos de famille se chargent dans l’espace aidant, **pas dans GitHub**.
+Placer un JPG dans `assets/photos/`, ajouter ses métadonnées à `games/data.js` et son crédit à `assets/CREDITS.md`. Vérifier son sujet et sa licence. Puis exécuter `python3 scripts/build-cache.py` pour actualiser la liste du cache et sa version. Les images intégrées ne doivent contenir aucune donnée privée. Les autres photos de famille se chargent dans l’espace aidant, **pas dans GitHub**.
 
 ## Les quinze activités
 
 | Jeu | Ce que l’on fait ensemble | Léger / modéré / avancé |
 |---|---|---|
-| **Ma famille** | Uniquement les photos de la famille (rangées dans « Proches »). Trois moments qui alternent : « Voici Delphine » (regarder, en parler), « Montrez-moi Delphine » (désigner parmi des photos **légendées** : le prénom est toujours écrit), « Les doubles » (réunir deux photos identiques, toutes visibles). On ne demande jamais « Qui est-ce ? » | 10 / 6 / 3 moments ; 4 / 3 / 2 photos ; photos affichées entières, comme des tirages |
+| **Ma famille** | Uniquement les photos de la famille : les 54 photos intégrées et celles ajoutées dans « Proches ». Une photo importée avec le même identifiant remplace la version intégrée (pour corriger un prénom). Trois moments qui alternent : « Voici Delphine » (regarder, en parler), « Montrez-moi Delphine » (désigner parmi des photos **légendées** : le prénom est toujours écrit), « Les doubles » (réunir deux photos identiques, toutes visibles). On ne demande jamais « Qui est-ce ? » | 10 / 6 / 3 moments ; 4 / 3 / 2 photos ; photos affichées entières, comme des tirages |
 | **Le mot juste** | Nommer un objet familier. Réponse dite à voix haute (validée par le proche), montrée du doigt ou touchée parmi des propositions | 10 / 6 / 3 photos ; propositions à la demande (4 / 3), d’emblée 2 au profil avancé |
 | **Ça sert à quoi ?** | Associer une photo nommée à sa famille, son usage ou l’endroit où on la trouve | 4 / 3 / 2 propositions ; toucher ou glisser-déposer |
 | **Une consigne à la fois** | Suivre de courtes consignes dans une scène du quotidien (six scènes : petit-déjeuner, sortir, marché, s’habiller pour l’hiver, soupe de légumes, salade de fruits) | 4 / 3 / 2 consignes et autant de photos ; une seule action par consigne |
@@ -200,4 +202,4 @@ Structure : `index.html`, `style.css`, `script.js`, `store.js`, `sw.js`, `manife
 
 ## Licences
 
-Code : **MIT**, voir `LICENSE`. Photographies : **licence Pexels** (première série), **CC BY-SA 4.0** (Fruits-360) et **CC0** (Clothing dataset), différentes de MIT. Enregistrements : **CC0 1.0**. Voir les liens et crédits de chaque fichier dans `assets/CREDITS.md`. La police Atkinson Hyperlegible est distribuée sous licence SIL OFL 1.1 (`assets/fonts/OFL.txt`). Le logo typographique sert uniquement d’icône d’application ; tous les stimuli photographiques des jeux sont des photos réelles. Aucun emoji ni dessin ne remplace une photo dans les activités.
+Code : **MIT**, voir `LICENSE`. Photographies : **licence Pexels** (première série), **CC BY-SA 4.0** (Fruits-360) et **CC0** (Clothing dataset), différentes de MIT. Enregistrements : **CC0 1.0**. Photos de famille (`assets/famille/`) : **tous droits réservés**, aucune réutilisation. Voir les liens et crédits de chaque fichier dans `assets/CREDITS.md`. La police Atkinson Hyperlegible est distribuée sous licence SIL OFL 1.1 (`assets/fonts/OFL.txt`). Le logo typographique sert uniquement d’icône d’application ; tous les stimuli photographiques des jeux sont des photos réelles. Aucun emoji ni dessin ne remplace une photo dans les activités.

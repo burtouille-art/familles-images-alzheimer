@@ -1,6 +1,7 @@
 import { image, button, shuffle, PRAISE } from "./core.js";
-// « Ma famille » : un jeu fait uniquement des photos de la famille, rangées
-// dans « Proches ». Trois moments qui alternent, tous sans échec :
+// « Ma famille » : un jeu fait uniquement des photos de la famille : celles
+// intégrées à l'application (games/family-data.js) et celles ajoutées sur
+// l'appareil dans « Proches ». Trois moments qui alternent, tous sans échec :
 // 1. « Voici… » : regarder une photo et en parler ;
 // 2. « Montrez-moi… » : désigner un proche parmi des photos légendées
 //    (les prénoms restent écrits : on ne demande jamais de les retrouver) ;

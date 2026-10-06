@@ -369,3 +369,18 @@ test("Noms qui se recouvrent : jamais proposés ensemble", () => {
     }
   }
 });
+
+test("Photos de famille intégrées : fichiers présents, sans prénom dans le nom, mises en cache", async () => {
+  const { FAMILY } = await import("../games/family-data.js");
+  assert.equal(FAMILY.length, 54);
+  assert.equal(new Set(FAMILY.map((p) => p.id)).size, FAMILY.length);
+  const sw = fs.readFileSync("sw.js", "utf8");
+  for (const p of FAMILY) {
+    assert.match(p.src, /^assets\/famille\/f\d\d\.jpg$/, "nom de fichier neutre");
+    assert.ok(fs.existsSync(p.src), p.src);
+    assert.ok(p.name.trim().length, "prénom affiché");
+    assert.ok(sw.includes(p.src), `${p.src} disponible hors connexion`);
+  }
+  const html = fs.readFileSync("index.html", "utf8");
+  assert.match(html, /name="robots" content="noindex/);
+});

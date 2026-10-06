@@ -1,4 +1,5 @@
 import { GAMES, PHOTOS } from "./games/data.js";
+import { FAMILY } from "./games/family-data.js";
 import {
   PROFILES,
   CATEGORIES,
@@ -248,7 +249,7 @@ function startGame(id) {
   const key = `${prefs.stage}-${id}`;
   const ctx = {
     stage: prefs.stage,
-    photos: [...personal.filter((p) => p.ready), ...PHOTOS],
+    photos: [...myPhotos(), ...PHOTOS],
     body: $("game-body"),
     get rules() {
       return getRules(
@@ -515,6 +516,21 @@ function chosenGames() {
 }
 // Accueil : salutation selon l'heure, date du jour (repère dans le temps),
 // photo personnelle mise en avant, activités de la séance d'abord.
+// Photos de l'appareil, puis photos de famille intégrées à l'application.
+// Une photo importée avec le même identifiant (pack de famille) l'emporte :
+// le proche peut ainsi corriger un prénom sans rien perdre.
+const BUILTIN_FAMILY = FAMILY.map((p) => ({
+  ...p,
+  category: "Proches",
+  personal: true,
+  builtin: true,
+  ready: true,
+}));
+function myPhotos() {
+  const mine = personal.filter((p) => p.ready);
+  const ids = new Set(personal.map((p) => p.id));
+  return [...mine, ...BUILTIN_FAMILY.filter((p) => !ids.has(p.id))];
+}
 function renderHome() {
   const now = new Date();
   const hour = now.getHours();
@@ -526,9 +542,12 @@ function renderHome() {
     month: "long",
   });
   $("today").textContent = `Nous sommes ${day}.`;
-  const mine = personal.filter((p) => p.ready);
+  const mine = myPhotos();
+  const relatives = mine.filter((p) => p.category === "Proches");
+  // Une photo de famille différente chaque jour.
+  const dayIndex = Math.floor(now.getTime() / 86400000);
   const featured =
-    mine.find((p) => p.category === "Proches") ||
+    relatives[dayIndex % (relatives.length || 1)] ||
     mine.find((p) => p.category === "Lieux") ||
     mine[0];
   $("featured-photo").src = featured ? featured.src : "assets/photos/lac.jpg";
@@ -538,7 +557,7 @@ function renderHome() {
     ? featured.name
     : "Un lac entouré de montagnes";
   // La carte « Ma famille » montre une vraie photo de la famille.
-  const relative = mine.find((p) => p.category === "Proches");
+  const relative = relatives[(dayIndex + 1) % (relatives.length || 1)];
   const cover = $("game-grid").querySelector(
     '.game-card[data-game="family"] img',
   );
