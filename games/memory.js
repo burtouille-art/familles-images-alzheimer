@@ -96,6 +96,9 @@ export default function memory(ctx) {
       locked = false;
     });
   }
+  ctx.setCaregiverTip(
+    "Nommez les photos quand elles apparaissent. Vous pouvez montrer les cartes à nouveau autant de fois que nécessaire.",
+  );
   ctx.setHint(() => {
     peek = true;
     cards.forEach((_, i) => paint(i));

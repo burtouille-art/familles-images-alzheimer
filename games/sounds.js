@@ -20,7 +20,9 @@ export default function sounds(ctx) {
     );
     const choices = document.createElement("div");
     choices.className = "choices";
-    for (const item of choiceSet(p, ctx.photos, ctx.rules.choices, "id")) {
+    for (const item of choiceSet(p, ctx.photos, ctx.rules.choices, "id", {
+      close: ctx.rules.close,
+    })) {
       const b = photoChoice(item, () => {
         if (answered) return;
         if (item.id === p.id) {
@@ -33,10 +35,14 @@ export default function sounds(ctx) {
           });
         } else ctx.wrong();
       });
+      b.dataset.correct = String(item.id === p.id);
       choices.append(b);
     }
     ctx.body.append(actions, choices);
     ctx.setHint(() => p.hint || `Ce son accompagne la photo « ${p.name} ».`);
+    ctx.setCaregiverTip(
+      "Réglez un volume confortable. Vous pouvez imiter le son, en parler (« Vous aviez un chien ? ») ou simplement écouter ensemble.",
+    );
   }
   show();
 }

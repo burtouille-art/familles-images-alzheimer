@@ -1,21 +1,33 @@
 // Préférences et séances en localStorage. Photos et sons privés en IndexedDB.
+// La clé reste « v1 » pour conserver les réglages existants ; le champ
+// « schema » indique la version du contenu. Avant toute évolution, une copie
+// de sécurité des anciens réglages est gardée sous BACKUP_KEY.
 const KEY = "memoire-partage-v1";
+export const SCHEMA = 2;
+export const BACKUP_KEY = "memoire-partage-v1-copie-avant-schema-2";
 export const defaults = {
+  schema: SCHEMA,
   stage: "modere",
   font: 24,
   sound: false,
   vibration: false,
   guidance: false,
+  voice: false,
+  variants: {},
   adaptation: {},
   history: [],
 };
-let memory = { ...defaults, adaptation: {}, history: [] };
+let memory = { ...defaults, variants: {}, adaptation: {}, history: [] };
 let dbPromise;
 export let persistent = true;
 export function loadPreferences() {
   try {
-    const raw = JSON.parse(localStorage.getItem(KEY) || "{}");
+    const text = localStorage.getItem(KEY);
+    const raw = JSON.parse(text || "{}");
+    if (text && raw.schema !== SCHEMA && !localStorage.getItem(BACKUP_KEY))
+      localStorage.setItem(BACKUP_KEY, text);
     memory = validatePreferences(raw);
+    if (text && raw.schema !== SCHEMA) savePreferences(memory);
   } catch {
     persistent = false;
   }
@@ -24,6 +36,7 @@ export function loadPreferences() {
 export function validatePreferences(raw = {}) {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) raw = {};
   return {
+    schema: SCHEMA,
     stage: ["leger", "modere", "avance"].includes(raw.stage)
       ? raw.stage
       : "modere",
@@ -31,6 +44,21 @@ export function validatePreferences(raw = {}) {
     sound: raw.sound === true,
     vibration: raw.vibration === true,
     guidance: raw.guidance === true,
+    voice: raw.voice === true,
+    variants:
+      raw.variants &&
+      typeof raw.variants === "object" &&
+      !Array.isArray(raw.variants)
+        ? Object.fromEntries(
+            Object.entries(raw.variants).filter(
+              ([k, v]) =>
+                /^[a-z]{1,20}$/.test(k) &&
+                Number.isInteger(v) &&
+                v >= 0 &&
+                v < 50,
+            ),
+          )
+        : {},
     adaptation:
       raw.adaptation &&
       typeof raw.adaptation === "object" &&

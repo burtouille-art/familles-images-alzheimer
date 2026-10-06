@@ -1,42 +1,107 @@
-import { image, textChoices } from "./core.js";
+import { image, button } from "./core.js";
+// « Un lieu, un souvenir » : échanger autour d'une photo, sans réponse attendue.
+// Toutes les réponses sont accueillies ; rien n'est compté comme une erreur.
 export default function places(ctx) {
   const photos = ctx.prioritize(
     ctx.photos.filter(
       (p) =>
-        (p.personal && p.place) ||
-        (!p.personal && (p.category === "Lieux" || p.id === "jardin")),
+        (p.personal &&
+          (p.place ||
+            p.hint ||
+            p.category === "Lieux" ||
+            p.category === "Proches")) ||
+        (!p.personal && (p.category === "Lieux" || p.category === "Nature")),
     ),
   );
   let round = 0;
   function show() {
     if (round >= ctx.rules.rounds) return ctx.complete();
     const p = photos[round % photos.length];
+    const advanced = ctx.stage === "avance";
     ctx.prepare(
       "Un lieu, un souvenir",
-      p.personal
-        ? "Quel lieu avez-vous associé à cette photo ?"
-        : "À quel type de lieu cette photo fait-elle penser ?",
+      advanced
+        ? "Regardons cette photo ensemble."
+        : "Regardez cette photo. Qu’est-ce qu’elle vous évoque ?",
       round + 1,
       ctx.rules.rounds,
     );
     const layout = document.createElement("div");
     layout.className = "photo-question";
-    layout.append(image(p, "big-photo", "Un lieu à reconnaître"));
-    layout.append(
-      textChoices(
-        ctx,
-        { name: p.place },
-        photos.map((x) => ({ name: x.place })),
-        () => {
-          round++;
-          show();
-        },
+    const figure = document.createElement("figure");
+    figure.className = "named-photo";
+    figure.append(
+      image(
+        p,
+        "big-photo",
+        p.personal ? p.name || "Photo personnelle" : p.name,
       ),
     );
+    const cap = document.createElement("figcaption");
+    cap.textContent = p.personal
+      ? [p.name, p.place].filter(Boolean).join(" · ")
+      : p.place;
+    figure.append(cap);
+    const side = document.createElement("div");
+    side.className = "answer-panel";
+    const question = document.createElement("p");
+    question.className = "talk";
+    question.textContent = p.personal
+      ? "Qu’est-ce que cette photo vous rappelle ?"
+      : p.talk || "Qu’est-ce que cette photo vous évoque ?";
+    side.append(question);
+    if (p.personal && p.hint) {
+      const memo = document.createElement("p");
+      memo.className = "guide";
+      memo.textContent = `Pour le proche, un souvenir noté : ${p.hint}`;
+      side.append(memo);
+    }
+    const choices = document.createElement("div");
+    choices.className = "choices text-choices";
+    const options = p.options || [
+      "J’ai envie d’en parler",
+      "Regarder simplement",
+    ];
+    let chosen = false;
+    for (const label of options) {
+      const b = button(label, () => {
+        if (chosen) return;
+        chosen = true;
+        b.classList.add("selected");
+        b.setAttribute("aria-pressed", "true");
+        ctx.share(() => {
+          round++;
+          show();
+        }, `${label} : merci de l’avoir partagé. Prenez le temps d’en parler si vous le souhaitez.`);
+      });
+      choices.append(b);
+    }
+    side.append(choices);
+    side.append(
+      button(
+        "Nous en avons parlé",
+        () => {
+          if (chosen) return;
+          chosen = true;
+          ctx.share(() => {
+            round++;
+            show();
+          }, "Merci pour cet échange.");
+        },
+        "quiet",
+      ),
+    );
+    layout.append(figure, side);
     ctx.body.append(layout);
-    ctx.setHint(
-      () =>
-        `${p.place}. ${p.hint || "Prenez aussi le temps de raconter ce que ce lieu vous évoque."}`,
+    const prompts = [
+      "Cela vous rappelle-t-il un voyage ou une personne ?",
+      "Qu’entend-on, que sent-on dans un endroit pareil ?",
+      "Quelle saison cette photo vous évoque-t-elle ?",
+    ];
+    let i = 0;
+    ctx.setHint(() => prompts[i++ % prompts.length]);
+    ctx.setCaregiverTip(
+      "Il n’y a pas de bonne réponse. Accueillez ce qui est dit, même si les détails diffèrent de vos souvenirs. Parlez aussi de vous.",
     );
   }
   show();

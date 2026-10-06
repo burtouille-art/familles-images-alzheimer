@@ -35,8 +35,70 @@ export const CATEGORIES = [
   "Vêtements",
   "Lieux",
   "Objets",
+  "Nature",
   "Proches",
 ];
+// Forme au singulier, pour des consignes naturelles (« Touchez le fruit »).
+export const CATEGORY_ONE = {
+  Fruits: { a: "un fruit", the: "le fruit" },
+  Légumes: { a: "un légume", the: "le légume" },
+  Animaux: { a: "un animal", the: "l’animal" },
+  Vêtements: { a: "un vêtement", the: "le vêtement" },
+  Lieux: { a: "un lieu", the: "le lieu" },
+  Objets: { a: "un objet du quotidien", the: "l’objet" },
+  Nature: { a: "un élément de la nature", the: "la nature" },
+  Proches: { a: "un proche", the: "le proche" },
+};
+// Retours chaleureux et adultes : pas de note, pas de « faux ».
+export const PRAISE = [
+  "Oui, c’est bien cela.",
+  "Tout à fait.",
+  "Oui, exactement.",
+  "C’est cela, merci.",
+];
+export const lower = (s) => String(s ?? "").toLocaleLowerCase("fr");
+const STOP = new Set([
+  "une",
+  "des",
+  "les",
+  "du",
+  "de",
+  "la",
+  "le",
+  "un",
+  "et",
+  "au",
+  "aux",
+  "dans",
+  "sur",
+  "sous",
+  "pour",
+  "avec",
+  "est",
+  "elle",
+  "elles",
+  "ils",
+  "qui",
+  "que",
+  "son",
+  "ses",
+  "sa",
+  "en",
+  "on",
+]);
+function words(s) {
+  return lower(s)
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .split(/[^a-z]+/)
+    .filter((w) => w.length > 2 && !STOP.has(w));
+}
+// Deux libellés qui partagent un mot important prêtent à confusion
+// (« une tasse de café » / « une tasse et une théière ») : on les évite.
+export function confusable(a, b) {
+  const wa = words(a);
+  return words(b).some((w) => wa.includes(w));
+}
 export function shuffle(items, random = Math.random) {
   const a = [...items];
   for (let i = a.length - 1; i > 0; i--) {
@@ -48,15 +110,34 @@ export function shuffle(items, random = Math.random) {
 export function uniqueBy(items, key = "id") {
   return [...new Map(items.map((x) => [x[key], x])).values()];
 }
-export function choiceSet(correct, pool, size, key = "name") {
+// close = true : distracteurs de la même famille (plus exigeant, profil léger).
+// close = false : distracteurs d'autres familles (plus facile à distinguer).
+export function choiceSet(
+  correct,
+  pool,
+  size,
+  key = "name",
+  { close: near = true } = {},
+) {
   const others = uniqueBy(
-    pool.filter((x) => x[key] !== correct[key]),
+    pool.filter(
+      (x) =>
+        x[key] !== correct[key] &&
+        (typeof x[key] !== "string" || !confusable(x[key], correct[key])),
+    ),
     key,
   );
-  const close = correct.category
-    ? shuffle(others.filter((x) => x.category === correct.category))
-    : [];
-  const rest = shuffle(others.filter((x) => !close.includes(x)));
+  const close =
+    correct.category && near
+      ? shuffle(others.filter((x) => x.category === correct.category))
+      : [];
+  const remaining = others.filter((x) => !close.includes(x));
+  const rest = near
+    ? shuffle(remaining)
+    : [
+        ...shuffle(remaining.filter((x) => x.category !== correct.category)),
+        ...shuffle(remaining.filter((x) => x.category === correct.category)),
+      ];
   return shuffle([
     correct,
     ...[...close, ...rest].slice(0, Math.max(1, size) - 1),
@@ -66,6 +147,9 @@ export function getRules(stage = "modere", support = 0) {
   const p = PROFILES[stage] || PROFILES.modere;
   return {
     ...p,
+    support: Math.min(1, support),
+    // Distracteurs proches (même famille) seulement au profil léger sans aide.
+    close: stage === "leger" && !support,
     choices: Math.max(2, p.choices - Math.min(1, support)),
     pairs: Math.max(2, p.pairs - (support > 0 ? 2 : 0)),
     recall: Math.max(2, p.recall - (support > 0 ? 1 : 0)),
@@ -96,6 +180,41 @@ export function adapt(state, kind) {
     }
   }
   return s;
+}
+// Aides progressives pour l'accès au mot, de la plus légère à la plus forte :
+// contexte familier → fonction → catégorie → début du mot → deux choix → modèle.
+// L'indice phonologique n'est proposé qu'aux profils léger et modéré.
+export function cueLadder(photo, stage) {
+  const steps = [];
+  const context = photo.context || (photo.personal && photo.place);
+  if (context)
+    steps.push({ kind: "context", label: "Le contexte", text: context });
+  const use = photo.function || (photo.personal && photo.hint);
+  if (use) steps.push({ kind: "function", label: "L’usage", text: use });
+  const one = CATEGORY_ONE[photo.category];
+  if (one)
+    steps.push({
+      kind: "category",
+      label: "La famille",
+      text: `C’est ${one.a}.`,
+    });
+  if (photo.cue && stage !== "avance")
+    steps.push({
+      kind: "phonology",
+      label: "Le début du mot",
+      text: `Le mot commence par « ${photo.cue} »`,
+    });
+  steps.push({
+    kind: "choices",
+    label: "Deux propositions",
+    text: "Choisissons entre deux propositions.",
+  });
+  steps.push({
+    kind: "model",
+    label: "Le mot",
+    text: `C’est ${lower(photo.name)}. On peut le dire ensemble : « ${photo.name} ».`,
+  });
+  return steps;
 }
 export function puzzleOrder(n) {
   let a = shuffle(Array.from({ length: n }, (_, i) => i));
@@ -173,7 +292,9 @@ export function photoChoice(photo, click, { label = true } = {}) {
 export function textChoices(ctx, correct, pool, onCorrect, key = "name") {
   const wrap = document.createElement("div");
   wrap.className = "choices text-choices";
-  const options = choiceSet(correct, pool, ctx.rules.choices, key);
+  const options = choiceSet(correct, pool, ctx.rules.choices, key, {
+    close: ctx.rules.close,
+  });
   let answered = false;
   for (const item of options) {
     const b = button(item[key], () => {
@@ -191,7 +312,11 @@ export function textChoices(ctx, correct, pool, onCorrect, key = "name") {
     const wrong = [...wrap.children].filter(
       (b) => b.dataset.correct === "false",
     );
-    if (wrong.length > 1) wrong[0].hidden = true;
+    const left = wrong.filter((b) => !b.hidden);
+    if (left.length > 1) {
+      left[0].hidden = true;
+      return "Une proposition en moins. Prenons le temps de regarder.";
+    }
     return `Regardons ensemble : ${correct[key]}.`;
   });
   return wrap;

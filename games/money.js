@@ -1,4 +1,13 @@
-import { moneyQuestion, choiceSet, button } from "./core.js";
+import { moneyQuestion, choiceSet, button, PRAISE } from "./core.js";
+// « À la boulangerie » : une situation d'achat du quotidien. Ce n'est ni une
+// évaluation de l'autonomie financière ni un test de calcul.
+const ITEMS = [
+  "une baguette et un croissant",
+  "un pain de campagne",
+  "des chouquettes",
+  "une tarte aux pommes",
+  "deux baguettes",
+];
 export default function money(ctx) {
   let round = 0;
   const euro = new Intl.NumberFormat("fr-FR", {
@@ -10,10 +19,10 @@ export default function money(ctx) {
     let answered = false;
     const q = moneyQuestion(ctx.stage, round);
     ctx.prepare(
-      "La petite monnaie",
+      "À la boulangerie",
       q.type === "count"
-        ? "Chaque carte représente une pièce de 1 €. Combien d’euros cela fait-il ?"
-        : "Regardez les montants, puis choisissez la monnaie à rendre.",
+        ? "Chaque carte est une pièce de 1 €. Combien d’euros avons-nous ?"
+        : `Nous achetons ${ITEMS[round % ITEMS.length]}. Combien la boulangère nous rend-elle ?`,
       round + 1,
       ctx.rules.rounds,
     );
@@ -49,9 +58,9 @@ export default function money(ctx) {
       const equation = document.createElement("div");
       equation.className = "money-equation";
       const p1 = document.createElement("p");
-      p1.textContent = `Prix : ${euro.format(q.cost)}`;
+      p1.textContent = `Ça coûte ${euro.format(q.cost)}.`;
       const p2 = document.createElement("p");
-      p2.textContent = `Somme donnée : ${euro.format(q.paid)}`;
+      p2.textContent = `Nous donnons ${euro.format(q.paid)}.`;
       equation.append(p1, p2);
       left.append(im, equation);
     }
@@ -62,6 +71,7 @@ export default function money(ctx) {
       q.choices.map((value) => ({ value })),
       ctx.rules.choices,
       "value",
+      { close: false },
     )) {
       const v = item.value;
       options.append(
@@ -70,11 +80,17 @@ export default function money(ctx) {
           if (v === q.answer) {
             answered = true;
             for (const b of options.children) b.disabled = true;
-            ctx.success(() => {
-              round++;
-              show();
-            });
-          } else ctx.wrong("Comptons ensemble, tranquillement.");
+            ctx.success(
+              () => {
+                round++;
+                show();
+              },
+              `${PRAISE[round % PRAISE.length]} ${euro.format(v)}.`,
+            );
+          } else
+            ctx.wrong(
+              "Comptons ensemble, tranquillement, avec les doigts si vous voulez.",
+            );
         }),
       );
     }
@@ -84,6 +100,9 @@ export default function money(ctx) {
       q.type === "count"
         ? `${q.count} pièce${q.count > 1 ? "s" : ""} de 1 €, cela fait ${euro.format(q.answer)}.`
         : `${euro.format(q.paid)} moins ${euro.format(q.cost)} : on rend ${euro.format(q.answer)}.`,
+    );
+    ctx.setCaregiverTip(
+      "Vous pouvez sortir de vraies pièces et compter ensemble. Une réponse approximative est déjà un bel échange.",
     );
   }
   show();

@@ -7,6 +7,7 @@ import {
   shuffle,
   escapeHTML,
   button,
+  PRAISE,
 } from "./games/core.js";
 import * as storage from "./store.js";
 import recognition from "./games/recognition.js";
@@ -43,7 +44,9 @@ let prefs = storage.loadPreferences(),
 let hintHandler = null,
   hadHelp = false,
   hadDifficulty = false,
-  sessionToken = 0;
+  sessionToken = 0,
+  stepsDone = 0,
+  praiseIndex = 0;
 const views = ["home", "play", "settings", "done"];
 function showView(name) {
   stopAudio();
@@ -66,6 +69,7 @@ function applyPreferences() {
   $("sound").checked = prefs.sound;
   $("vibration").checked = prefs.vibration;
   $("guidance").checked = prefs.guidance;
+  $("voice").checked = prefs.voice;
 }
 function stopAudio() {
   if (audio) {
@@ -77,7 +81,8 @@ function stopAudio() {
 function speechSynthesisSafeCancel() {
   if ("speechSynthesis" in window) window.speechSynthesis.cancel();
 }
-function say(text) {
+function say(text, force = true) {
+  if (!force && !prefs.voice) return;
   if (!("speechSynthesis" in window)) {
     $("feedback").textContent =
       "La lecture vocale n’est pas disponible ici. La consigne reste affichée.";
@@ -158,14 +163,52 @@ function setNext(handler, label = "Continuer tranquillement") {
 function home() {
   sessionToken++;
   active = null;
+  closePause();
   showView("home");
+}
+// Pause : le jeu reste en mémoire, on reprend exactement au même endroit.
+function openPause() {
+  if (!active) return home();
+  stopAudio();
+  speechSynthesisSafeCancel();
+  $("pause-panel").hidden = false;
+  $("play-content").hidden = true;
+  $("pause-finish").hidden = stepsDone === 0;
+  $("pause-title").focus();
+}
+function closePause() {
+  $("pause-panel").hidden = true;
+  $("play-content").hidden = false;
+}
+function resume() {
+  closePause();
+  $("game-title").focus();
+}
+function recordSession() {
+  if (!active) return;
+  prefs.history.push({ game: active.id, date: Date.now() });
+  prefs.history = prefs.history.slice(-300);
+  persist();
+}
+function finishEarly() {
+  recordSession();
+  closePause();
+  sessionToken++;
+  showView("done");
+  $("done-message").textContent =
+    "Vous pouvez vous arrêter quand vous le souhaitez. Cette séance a été ajoutée aux moments partagés.";
+  $("done-title").focus();
 }
 function startGame(id) {
   const g = GAMES.find((g) => g.id === id);
   if (!g) return;
   sessionToken++;
   active = g;
+  stepsDone = 0;
+  closePause();
   showView("play");
+  $("caregiver-tip").hidden = true;
+  $("tip-toggle").setAttribute("aria-expanded", "false");
   $("game-domain").textContent = g.domain;
   const key = `${prefs.stage}-${id}`;
   const ctx = {
@@ -179,6 +222,27 @@ function startGame(id) {
       ...shuffle(items.filter((p) => p.personal)),
       ...shuffle(items.filter((p) => !p.personal)),
     ],
+    variant(name, n) {
+      const v = (prefs.variants[name] || 0) % n;
+      prefs.variants[name] = (v + 1) % n;
+      persist();
+      return v;
+    },
+    say,
+    setCaregiverTip(text) {
+      $("caregiver-tip-text").textContent = text;
+      $("tip-toggle").hidden = !text;
+      $("guide").textContent = text;
+      $("guide").hidden = !(
+        text &&
+        (prefs.guidance || prefs.stage === "avance")
+      );
+    },
+    share(next, message = "Merci pour ce moment d’échange.") {
+      stepsDone++;
+      $("feedback").textContent = message;
+      setNext(next);
+    },
     prepare(title, instruction, index, total) {
       stopAudio();
       speechSynthesisSafeCancel();
@@ -189,12 +253,18 @@ function startGame(id) {
       $("game-title").textContent = title;
       $("instruction").textContent = instruction;
       $("game-progress").textContent =
-        index && total ? `Étape ${index} sur ${total}` : "Tout votre temps";
-      $("guide").hidden = !(prefs.guidance || prefs.stage === "avance");
+        index && total
+          ? `${index} sur ${total} · sans se presser`
+          : "Tout votre temps";
+      $("guide").hidden = true;
+      $("tip-toggle").hidden = true;
+      $("caregiver-tip").hidden = true;
+      $("tip-toggle").setAttribute("aria-expanded", "false");
       ctx.body.replaceChildren();
       $("feedback").textContent = "";
       setNext(null);
       $("game-title").focus();
+      say(`${title}. ${instruction}`, false);
     },
     setHint(fn) {
       hintHandler = fn;
@@ -205,18 +275,20 @@ function startGame(id) {
     clearFeedback() {
       $("feedback").textContent = "";
     },
-    success(next) {
+    success(next, message) {
       if (!hadHelp && !hadDifficulty) mark("success");
+      stepsDone++;
       reward();
-      $("feedback").textContent = "Bravo ! C’est exact !";
+      $("feedback").textContent =
+        message || PRAISE[praiseIndex++ % PRAISE.length];
       setNext(next);
     },
     wrong(
-      extra = "Vous pouvez réessayer, autant de fois que vous le souhaitez.",
+      extra = "Prenons le temps, on peut essayer autant de fois que l’on veut.",
     ) {
+      if (!hadDifficulty) mark("difficulty");
       hadDifficulty = true;
-      mark("difficulty");
-      $("feedback").textContent = `Presque ! Regardons ensemble. ${extra}`;
+      $("feedback").textContent = `Regardons ensemble. ${extra}`;
     },
     async playAudio(src) {
       stopAudio();
@@ -235,9 +307,8 @@ function startGame(id) {
     stopAudio,
     complete() {
       if (!active) return;
-      prefs.history.push({ game: active.id, date: Date.now() });
-      prefs.history = prefs.history.slice(-300);
-      persist();
+      recordSession();
+      sessionToken++;
       showView("done");
       $("done-message").textContent =
         "Cette séance a été ajoutée aux moments partagés.";
@@ -255,18 +326,36 @@ $("hint").addEventListener("click", () => {
 $("read").addEventListener("click", () =>
   say(`${$("game-title").textContent}. ${$("instruction").textContent}`),
 );
-for (const id of ["brand", "back-home", "pause", "close-settings", "done-home"])
+for (const id of ["close-settings", "done-home", "pause-home"])
   $(id).addEventListener("click", home);
+$("brand").addEventListener("click", () =>
+  !$("play").hidden && active ? openPause() : home(),
+);
+$("pause").addEventListener("click", openPause);
+$("back-home").addEventListener("click", openPause);
+$("pause-resume").addEventListener("click", resume);
+$("pause-finish").addEventListener("click", finishEarly);
+$("tip-toggle").addEventListener("click", () => {
+  const open = $("caregiver-tip").hidden;
+  $("caregiver-tip").hidden = !open;
+  $("tip-toggle").setAttribute("aria-expanded", String(open));
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && !$("play").hidden) {
+    if ($("pause-panel").hidden) openPause();
+    else resume();
+  }
+});
 $("replay").addEventListener("click", () => {
   if (active) startGame(active.id);
 });
-$("start-photo").addEventListener("click", () => startGame("recognition"));
+$("start-photo").addEventListener("click", () => startGame("places"));
 function buildHome() {
   const grid = $("game-grid");
   for (const g of GAMES) {
     const card = document.createElement("article");
     card.className = "game-card";
-    card.innerHTML = `<img src="assets/photos/${g.cover}.jpg" alt="" loading="lazy" width="640" height="420"><div class="game-card-content"><h3>${g.title}</h3><p>${g.description}</p></div>`;
+    card.innerHTML = `<img src="assets/photos/${g.cover}.jpg" alt="" loading="lazy" width="640" height="420"><div class="game-card-content"><p class="domain">${g.domain}</p><h3>${g.title}</h3><p>${g.description}</p></div>`;
     const b = button("Jouer", () => startGame(g.id));
     b.setAttribute("aria-label", `Jouer à ${g.title}`);
     const arrow = document.createElement("span");
@@ -281,9 +370,11 @@ function stageButtons() {
   const wrap = $("stage-options");
   wrap.replaceChildren();
   const details = {
-    leger: "10 étapes, davantage de choix. Prendre son temps.",
-    modere: "6 étapes, 2 à 3 choix et des indices.",
-    avance: "3 étapes, 2 choix. Regarder et répondre ensemble.",
+    leger:
+      "Jusqu’à 10 étapes et 4 propositions. La personne joue, le proche accompagne si besoin.",
+    modere: "Jusqu’à 6 étapes, 3 propositions et des aides pas à pas.",
+    avance:
+      "3 étapes au plus, 2 propositions, une action à la fois. Regarder, écouter et échanger ensemble.",
   };
   for (const [key, p] of Object.entries(PROFILES)) {
     const b = button(p.label, () => {
@@ -319,6 +410,7 @@ for (const [id, key] of [
   ["sound", "sound"],
   ["vibration", "vibration"],
   ["guidance", "guidance"],
+  ["voice", "voice"],
 ])
   $(id).addEventListener("change", (e) => {
     prefs[key] = e.target.checked;
@@ -390,7 +482,7 @@ function renderPersonal() {
     const raw = rawPersonal.find((x) => x.id === p.id);
     const editor = document.createElement("form");
     editor.className = "personal-editor";
-    editor.innerHTML = `<img src="${p.src}" alt="Photo personnelle à personnaliser"><label>Nom à reconnaître<input type="text" name="name" maxlength="80" required value="${escapeHTML(p.name)}" placeholder="Le lac de notre village"></label><p>Pour une personne, indiquez le prénom ou le lien familial qui lui est familier.</p><fieldset><legend>Famille de la photo</legend><div class="category-options"></div></fieldset><label>Lieu associé (facultatif)<input type="text" name="place" maxlength="100" value="${escapeHTML(p.place)}" placeholder="Au lac de notre village"></label><label>Indice ou souvenir (facultatif)<textarea name="hint" maxlength="240" rows="3" placeholder="Nous y allions chaque été…">${escapeHTML(p.hint)}</textarea></label><label>Son associé (facultatif)<input type="file" name="audio" accept="audio/*"></label><p>${p.audio ? "Un son personnel est associé à cette photo." : "Un son de 5 Mo maximum peut accompagner la photo dans « À l’écoute »."}</p><div class="editor-actions"></div><p class="toast" role="status"></p>`;
+    editor.innerHTML = `<img src="${p.src}" alt="Photo personnelle à personnaliser"><label>Nom à reconnaître<input type="text" name="name" maxlength="80" required value="${escapeHTML(p.name)}" placeholder="Le lac de notre village"></label><p>Pour une personne, indiquez le prénom ou le lien familial qui lui est familier.</p><fieldset><legend>Famille de la photo</legend><div class="category-options"></div></fieldset><label>Lieu associé (facultatif)<input type="text" name="place" maxlength="100" value="${escapeHTML(p.place)}" placeholder="Au lac de notre village"></label><label>Où la voit-on, d’habitude ? (facultatif)<input type="text" name="context" maxlength="160" value="${escapeHTML(p.context)}" placeholder="Sur le buffet du salon"></label><label>À quoi sert-elle, ou qui est-ce ? (facultatif)<input type="text" name="function" maxlength="160" value="${escapeHTML(p.function)}" placeholder="Pour moudre le café du matin"></label><p>Ces deux phrases servent d’aides progressives dans « Le mot juste ».</p><label>Souvenir à partager (facultatif)<textarea name="hint" maxlength="240" rows="3" placeholder="Nous y allions chaque été…">${escapeHTML(p.hint)}</textarea></label><label>Son associé (facultatif)<input type="file" name="audio" accept="audio/*"></label><p>${p.audio ? "Un son personnel est associé à cette photo." : "Un son de 5 Mo maximum peut accompagner la photo dans « À l’écoute »."}</p><div class="editor-actions"></div><p class="toast" role="status"></p>`;
     let category = p.category;
     let audioBlob = raw.audio || null;
     const categoryWrap = editor.querySelector(".category-options");
@@ -465,6 +557,8 @@ function renderPersonal() {
           name,
           category,
           place: editor.elements.place.value.trim(),
+          context: editor.elements.context.value.trim(),
+          function: editor.elements.function.value.trim(),
           hint: editor.elements.hint.value.trim(),
           audio: audioBlob,
           ready: true,
@@ -495,6 +589,8 @@ $("upload-photo").addEventListener("change", async (e) => {
         name: "",
         category: "Objets",
         place: "",
+        context: "",
+        function: "",
         hint: "",
         blob,
         audio: null,
@@ -527,6 +623,8 @@ $("export-backup").addEventListener("click", async () => {
         name: p.name,
         category: p.category,
         place: p.place,
+        context: p.context || "",
+        function: p.function || "",
         hint: p.hint,
         ready: p.ready,
         image: await storage.toDataURL(p.blob),
@@ -537,7 +635,7 @@ $("export-backup").addEventListener("click", async () => {
         [
           JSON.stringify({
             format: "memoire-partage",
-            version: 1,
+            version: 2,
             preferences: prefs,
             photos,
           }),
@@ -566,7 +664,7 @@ $("import-backup").addEventListener("change", async (e) => {
     const data = JSON.parse(await file.text());
     if (
       data.format !== "memoire-partage" ||
-      data.version !== 1 ||
+      ![1, 2].includes(data.version) ||
       !Array.isArray(data.photos) ||
       data.photos.length > 200
     )
@@ -582,7 +680,11 @@ $("import-backup").addEventListener("change", async (e) => {
         typeof p.place !== "string" ||
         p.place.length > 100 ||
         typeof p.hint !== "string" ||
-        p.hint.length > 240
+        p.hint.length > 240 ||
+        (p.context != null &&
+          (typeof p.context !== "string" || p.context.length > 160)) ||
+        (p.function != null &&
+          (typeof p.function !== "string" || p.function.length > 160))
       )
         throw new Error("Une photo de cette sauvegarde n’est pas valide.");
       const blob = storage.dataURLToBlob(p.image, "image"),
@@ -594,6 +696,8 @@ $("import-backup").addEventListener("change", async (e) => {
         name: p.name,
         category: p.category,
         place: p.place,
+        context: p.context || "",
+        function: p.function || "",
         hint: p.hint,
         ready: Boolean(p.ready && p.name.trim()),
         blob,

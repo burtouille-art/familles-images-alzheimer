@@ -29,7 +29,7 @@ Les photographies sont intégrées aux activités, sous [licence Pexels](https:/
 | `pomme.jpg` | [Pexels, photo 102104](https://www.pexels.com/photo/102104/) | Pexels |
 | `tomate.jpg` | [Pexels, photo 19852143](https://www.pexels.com/photo/19852143/) | Pexels |
 
-La photo `centime.jpg` porte un ancien nom technique ; elle montre une pièce de **1 euro au premier plan**, pas une pièce de 1 centime. Les montants utilisés dans le jeu sont en euros.
+Les fichiers `bouilloire.jpg` (une **théière** et une tasse) et `chemise.jpg` (un **tee-shirt**) gardent leur ancien nom technique ; les libellés du jeu ont été corrigés. La photo `centime.jpg` porte aussi un ancien nom technique ; elle montre une pièce de **1 euro au premier plan**, pas une pièce de 1 centime. Les montants utilisés dans le jeu sont en euros.
 
 ## Sons réels
 

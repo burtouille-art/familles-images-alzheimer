@@ -1,6 +1,6 @@
 # MémoirePartage
 
-Une PWA gratuite et sans publicité pour partager des activités de stimulation cognitive : dix jeux, de vraies photos, trois profils d'accompagnement et tout le temps nécessaire. Téléphone, tablette ou ordinateur ; aucune inscription, aucun serveur applicatif, aucun service payant, aucune clé API.
+Une PWA gratuite et sans publicité pour partager des activités autour de la communication, des mots et des souvenirs : dix jeux, de vraies photos, trois profils d'accompagnement et tout le temps nécessaire. Téléphone, tablette ou ordinateur ; aucune inscription, aucun serveur applicatif, aucun service payant, aucune clé API.
 
 **L’application n’est ni un outil diagnostique, ni un test neuropsychologique validé, ni un traitement de la maladie d’Alzheimer. Elle ne garantit aucune amélioration ni aucun ralentissement de la maladie.** Les profils « léger », « modéré » et « avancé » sont des réglages choisis par l’aidant, pas une évaluation médicale. Pour choisir des activités appropriées à une personne, demander conseil à son équipe soignante.
 
@@ -37,63 +37,83 @@ Les photos personnelles ajoutées **dans l’application** ne sont jamais envoy�
 5. Choisir **Enregistrer cette photo**. Une photo sans nom enregistré reste dans le panneau mais n’est pas utilisée comme question.
 6. Facultatif : associer un son personnel (5 Mo maximum ; MP3 conseillé pour la compatibilité). Il sera proposé dans **À l’écoute**. L’enregistrement par microphone n’est pas nécessaire : importer un fichier déjà présent sur l’appareil.
 
-Les photos enregistrées sont prioritaires pour la reconnaissance, le memory, les lieux (si un lieu est renseigné), les sons (si un son est associé) et le puzzle. Pour garder la diversité, les photos de démonstration complètent les jeux. Les photos sont redimensionnées à 1 280 px maximum et réencodées en JPEG avant d’être conservées en **IndexedDB**, avec leurs sons. Ce réencodage enlève les métadonnées EXIF. Les réglages et les séances sont en **localStorage**. Aucun partage entre appareils n’est automatique.
+Les champs **« Où la voit-on ? »** et **« À quoi sert-elle, ou qui est-ce ? »** servent d’aides progressives dans « Le mot juste ». Les photos enregistrées sont prioritaires pour la dénomination, les échanges, le memory, les lieux (si un lieu est renseigné), les sons (si un son est associé) et le puzzle. Pour garder la diversité, les photos de démonstration complètent les jeux. Les photos sont redimensionnées à 1 280 px maximum et réencodées en JPEG avant d’être conservées en **IndexedDB**, avec leurs sons. Ce réencodage enlève les métadonnées EXIF. Les réglages et les séances sont en **localStorage**. Aucun partage entre appareils n’est automatique.
 
-**Sauvegarder mes photos et réglages** télécharge un JSON privé. **Restaurer une sauvegarde** importe les photos et remplace les réglages et l’historique ; les photos existantes ayant le même identifiant sont mises à jour, les autres sont conservées. Ne partager ce fichier qu’avec les personnes autorisées. La suppression d’une photo dans l’application l’efface de ce navigateur ; une sauvegarde exportée auparavant permet de la retrouver.
+**Sauvegarder mes photos et réglages** télécharge un JSON privé (format version 2 ; les sauvegardes version 1 restent acceptées). À la première ouverture de la version 2, une copie des anciens réglages est gardée dans le navigateur sous `memoire-partage-v1-copie-avant-schema-2` ; les photos (IndexedDB) ne changent pas de format. **Restaurer une sauvegarde** importe les photos et remplace les réglages et l’historique ; les photos existantes ayant le même identifiant sont mises à jour, les autres sont conservées. Ne partager ce fichier qu’avec les personnes autorisées. La suppression d’une photo dans l’application l’efface de ce navigateur ; une sauvegarde exportée auparavant permet de la retrouver.
 
 ### Ajouter une photo de démonstration au code
 
 Placer un JPG dans `assets/photos/`, ajouter ses métadonnées à `games/data.js` et son crédit à `assets/CREDITS.md`. Vérifier son sujet et sa licence. Puis exécuter `python3 scripts/build-cache.py` pour actualiser la liste du cache et sa version. Les images intégrées ne doivent contenir aucune donnée privée. Les photos de famille se chargent dans l’espace aidant, **pas dans GitHub**.
 
-## Les dix activités
+## Les dix activités (version 2)
 
-| Jeu | Activité | Adaptation |
+| Jeu | Ce que l’on fait ensemble | Léger / modéré / avancé |
 |---|---|---|
-| Photos familières | Choisir le nom, puis la famille d’une photo | 10 / 6 / 3 photos ; 4 / 3 / 2 choix avant adaptation |
-| Les photos jumelles | Retrouver des paires de vraies photos | 8 / 4 / 2 paires ; observation préalable au profil avancé ; retournement des erreurs à la demande |
-| Un lieu, un souvenir | Associer une photo à un lieu et en parler | 10 / 6 / 3 étapes ; lieux personnels renseignés par l’aidant |
-| À chaque photo sa famille | Ranger un objet par catégorie | Toucher une catégorie ou glisser-déposer ; 4 / 3 / 2 choix |
-| Les petits gestes | Reproduire l’ordre d’un exemple de petit-déjeuner présenté auparavant | 4 / 3 / 2 étapes. Cet ordre est un exemple, pas une norme : les habitudes peuvent varier |
-| À l’écoute | Écouter un enregistrement, puis choisir sa photo | Sons réels de chat, chien, eau et sons personnels ; aucune lecture automatique |
-| La petite monnaie | Compter des cartes de pièces de 1 € ou calculer la monnaie à rendre | Avancé : 1 à 3 cartes et choix binaire ; modéré : petits euros entiers ; léger : montants un peu plus élevés |
-| La photo à réunir | Échanger les morceaux pour recomposer une photo | 9 / 6 / 2 pièces ; modèle visible ; indice qui replace une pièce ; 6 / 4 / 2 avec davantage d’aide |
-| La photo différente | Trouver la photo qui n’appartient pas à une famille donnée | La famille cible est explicitement nommée, notamment quand il n’y a que 2 photos |
-| Dans mon panier | Observer, nommer puis retrouver des photos parmi d’autres | 7 / 4 / 3 éléments ; parenthèse libre au profil léger ; une photo à retrouver parmi deux au profil avancé, avec son nom en aide ; revoir la liste à volonté |
+| **Le mot juste** | Nommer un objet familier. Réponse dite à voix haute (validée par le proche), montrée du doigt ou touchée parmi des propositions | 10 / 6 / 3 photos ; propositions à la demande (4 / 3), d’emblée 2 au profil avancé |
+| **Ça sert à quoi ?** | Associer une photo nommée à sa famille, son usage ou l’endroit où on la trouve | 4 / 3 / 2 propositions ; toucher ou glisser-déposer |
+| **Une consigne à la fois** | Suivre de courtes consignes dans une scène du quotidien (petit-déjeuner, se préparer pour sortir, marché) | 4 / 3 / 2 consignes et autant de photos ; une seule action par consigne |
+| **Un lieu, un souvenir** | Regarder une photo et en parler. **Aucune bonne réponse** : choix de préférence ou « Nous en avons parlé » | 10 / 6 / 3 photos ; photos personnelles en priorité, souvenir noté affiché pour le proche |
+| **À la boulangerie** | Compter des pièces ou rendre la monnaie dans une situation d’achat | Avancé : 1 à 3 pièces et 2 choix ; modéré : petits montants ; léger : montants un peu plus élevés |
+| **À l’écoute** | Écouter un son réel, puis toucher sa photo | Aucune lecture automatique ; arrêt possible |
+| **Les photos jumelles** | Réunir des paires | 8 / 4 / 2 paires ; observation préalable au profil avancé |
+| **Chacun sa famille** | Trouver la photo d’une famille donnée | Modéré et avancé : consigne positive (« Touchez le fruit ») ; léger : trouver la photo d’une autre famille |
+| **Dans mon panier** | Observer, nommer, puis retrouver des photos | 7 / 4 / 3 photos ; une photo parmi deux au profil avancé |
+| **La photo à réunir** | Recomposer une photo, modèle visible | 9 / 6 / 2 pièces |
 
-Les photographies de monnaie sont réelles. Au stade avancé, **une carte représente une pièce de 1 €** : la photo de stock contient d’autres pièces à l’arrière-plan ; il ne faut pas les compter. Au stade léger/modéré, la photo de pièces illustre le thème ; les montants sont indiqués clairement en texte. Ce jeu ne simule pas les capacités financières réelles et ne mesure pas l’autonomie. Une photographie de billets et pièces est intégrée au profil léger ; les billets ne sont pas manipulés un par un.
+Les identifiants techniques des jeux n’ont pas changé : historique et adaptations des versions précédentes sont conservés.
+
+### Aides progressives pour l’accès au mot
+
+« Le mot juste » propose une aide à la fois, de la plus légère à la plus forte :
+
+1. **Contexte familier** (« On la trouve dans la corbeille de fruits »).
+2. **Usage** (« Elle se croque, en dessert ou au goûter »).
+3. **Famille** (« C’est un fruit »).
+4. **Début du mot**, profils léger et modéré seulement (« Le mot commence par « po… » ») : une syllabe orale, ou le premier son pour un mot d’une syllabe ; « tee-shirt » et « théière » sont écrits comme ils se prononcent (« ti… », « té… »).
+5. **Deux propositions** à toucher.
+6. **Modèle** : le mot est donné et la bonne proposition mise en évidence, pour le dire ou le toucher ensemble.
+
+Un choix erroné disparaît et l’aide suivante s’affiche : la personne n’est pas laissée face à l’erreur. Pour une photo personnelle, les champs « Où la voit-on ? » et « À quoi sert-elle, ou qui est-ce ? » remplis par l’aidant deviennent les aides 1 et 2. Aucune reconnaissance vocale : c’est le proche qui valide une réponse dite ou montrée (« Le nom a été dit ou montré »), y compris un mot approchant.
+
+Les propositions évitent les libellés ambigus (deux noms partageant un mot important), la frontière fruit / légume et les lieux qui se recouvrent (« dans la cuisine » / « dans la corbeille de fruits »). Les distracteurs de même famille ne sont utilisés qu’au profil léger sans aide supplémentaire.
 
 ## Aides automatiques et accompagnement
 
-Le profil reste inchangé jusqu’à une décision explicite de l’aidant. Deux difficultés ou demandes d’aide augmentent le soutien ; trois réponses correctes sans aide reviennent au soutien initial. **L’application n’augmente jamais les exigences au-delà du profil choisi.** Le soutien diminue le nombre de choix, et allège le nombre de paires, de pièces ou d’éléments au prochain démarrage de ces activités. Les erreurs et les réponses assistées ne sont pas montrées comme un score et ne figurent pas dans l’historique. Seules les séances terminées sont conservées (300 au maximum, les 12 dernières affichées).
+Le profil reste celui choisi par l’aidant. Deux étapes avec une difficulté ou une aide augmentent le soutien ; trois réussites sans aide le ramènent au niveau initial. Le soutien réduit le nombre de propositions, affiche d’emblée deux choix et le contexte familier, et allège paires, pièces et éléments. **L’application n’augmente jamais les exigences au-delà du profil choisi et ne déduit aucun stade de la maladie.** Les erreurs et aides ne sont ni affichées comme un score ni conservées.
 
-- **Léger :** proposer un choix entre activités et laisser la personne agir ; les indices restent accessibles, même à ce niveau. Les distracteurs du même groupe sont prioritaires pour les photos.
-- **Modéré :** donner une seule consigne, laisser du temps, nommer ou montrer sans obliger. Ajuster le profil ou la police si cela semble plus confortable.
-- **Avancé :** utiliser avec un proche. Montrer deux choix, commenter une photo, écouter un son familier ou guider les échanges. La consigne à l’aidant est affichée et la police passe à 28 px lors du choix de ce profil. Le plaisir de l’échange prime sur la réponse et sur le fait de terminer le jeu.
-- **À tous les profils :** partir des goûts de la personne, choisir un moment calme et une courte séance, tenir compte de la vision et de l’audition. Aucun chronomètre, aucune limite pour réessayer. Pause possible à tout moment. Le son de retour et la vibration sont désactivés par défaut. Les sons du jeu d’écoute ne démarrent que sur une action volontaire et peuvent être arrêtés.
+- **Pause** à tout moment (bouton ou touche Échap) : l’activité reste exactement où elle était. Depuis la pause : reprendre, **s’arrêter ici pour aujourd’hui** (la séance compte comme réalisée, sans obligation de finir) ou choisir une autre activité.
+- **Conseil au proche** dans chaque jeu (bouton « Proche ») : reformuler, montrer, répondre avec la personne. Affiché d’office au profil avancé ou si l’aidant le demande.
+- Retours sobres et adultes (« Oui, c’est bien cela. », « Regardons ensemble. ») ; ni « faux », ni score, ni classement, ni chronomètre. Essais et indices sans limite.
+- Écran de fin centré sur le repos (« Revenir à l’accueil ») plutôt que sur l’envie de rejouer.
+- Lecture vocale facultative (bouton « Lire », ou lecture automatique dans l’espace aidant) ; la consigne reste toujours écrite.
+- Historique : date et activité des séances réalisées, rien d’autre.
 
-## Sources cliniques : des inspirations, pas des reproductions
+## Ce qui est établi et ce qui relève de la conception
 
-Les visuels, items, procédures et barèmes propriétaires des tests ne sont pas copiés. Les activités ne sont **pas équivalentes** aux tests ci-dessous. Elles s’inspirent seulement de fonctions cognitives et de principes généraux ; aucun seuil clinique ni mesure de progression de la maladie n’est calculé.
+**Établi par les sources :**
 
-| Jeu | Fonction et rapprochement conceptuel | Limite |
-|---|---|---|
-| Photos familières | Dénomination visuelle, fonction explorée notamment par le **Boston Naming Test (BNT)** [3] | Photos originales / libres et choix multiples ; aucune administration ni cotation BNT |
-| Photos jumelles | Mémoire et reconnaissance visuelles ; domaine général également exploré par le **RCFT / Figure complexe de Rey** [5] | Le memory de paires n’est pas une adaptation ni une version validée de la Figure de Rey |
-| Lieu / souvenir | Réminiscence et contexte familier, selon les principes d’accompagnement de la **HAS** [1] | Conversations à partir de photos, sans test d’orientation ni inférence diagnostique |
-| Tri par familles | Connaissances sémantiques et catégorisation ; principes généraux de stimulation [1,2] | Ce tri n’est pas un Wisconsin Card Sorting Test ni une mesure de flexibilité mentale |
-| Séquence d’une activité | Organisation de gestes du quotidien et maintien des activités, cadre HAS [1] | Exemple de séquence présenté puis reproduit ; pas de test d’apraxie ni d’évaluation de l’autonomie |
-| Sons + photo | Reconnaissance de sons familiers et engagement sensoriel, cadre HAS [1] | Aucun test standardisé d’agnosie auditive n’est reproduit |
-| Calcul et monnaie | Attention et calcul, fonctions présentes dans le **MMSE** [4] | Les tâches et le barème MMSE ne sont pas repris ; ce n’est pas une évaluation financière |
-| Puzzle photo | Organisation visuelle et assemblage ; rapprochement large avec la construction visuelle examinée par le **RCFT** [5] | Assembler une photo n’est pas copier la Figure de Rey ; aucun matériel ni barème RCFT |
-| Intrus | Attention et catégorisation, principes généraux de stimulation [1,2] | Aucun test clinique spécifique, score ou norme diagnostique |
-| Rappel de liste | Encodage, rappel et indices sémantiques évoquant le **test des 5 mots de Dubois** [6] | Liste de photos personnalisée, reconnaissance et aide libre ; ni items, ni procédure, ni cotation du test des 5 mots |
+- La HAS recommande de parler lentement avec des phrases courtes, de laisser le temps de répondre, de soutenir l’attention (face à face, environnement épuré), de valoriser plutôt que corriger, et de former l’entourage à la communication [1, 2].
+- La stimulation cognitive (surtout en groupe, démence légère à modérée) apporte un petit bénéfice cognitif et des améliorations de la communication et des interactions sociales ; elle n’est pas évaluée aux stades sévères et ne démontre pas de ralentissement de la maladie [3, 9].
+- La réminiscence a des effets faibles et variables, avec un bénéfice probable léger sur la communication [4].
+- L’apprentissage sans erreur aide les personnes avec démence à apprendre des tâches quotidiennes [5].
+- L’indice phonologique aide davantage aux stades légers qu’aux stades modérés [6].
+- La formation des proches à la communication améliore leurs connaissances et leurs façons de communiquer ; les effets sur la personne malade sont plus incertains [7].
 
-1. **HAS (2018)**. *Maladie d’Alzheimer et maladies apparentées — fiche 13, prévenir les troubles du comportement*. Adaptation aux préférences, capacités, environnement et sévérité ; aux stades sévères, soutien et stimulation sensorielle sans surstimulation. [PDF HAS](https://www.has-sante.fr/upload/docs/application/pdf/2018-05/fiche_13_prevenir_troubles_comportement.pdf).
-2. **NICE, NG97**, recommandation 1.5.5 : proposer la stimulation cognitive **en groupe** pour les démences légères à modérées. [Recommandations](https://www.nice.org.uk/guidance/ng97/chapter/Recommendations). Cette PWA individuelle n’est pas le programme de groupe évalué ; cette recommandation ne valide pas l’application ni son efficacité aux stades avancés.
-3. **Boston Naming Test, 2e édition** — documentation de l’éditeur, dénomination sur présentation visuelle. [Pearson](https://www.pearsonclinical.com.au/en-au/en-au/c/Boston-Naming-Test---Second-Edition/p/P100065005), [PAR / BDAE](https://www.parinc.com/products/BDAE).
-4. **Folstein MF, Folstein SE, McHugh PR (1975)**. “Mini-mental state”. *Journal of Psychiatric Research*, 12(3), 189–198. [PubMed 1202204](https://pubmed.ncbi.nlm.nih.gov/1202204/).
-5. **Rey Complex Figure Test and Recognition Trial (RCFT)** — documentation de l’éditeur sur la mémoire visuelle et l’organisation visuoconstructive. [PAR](https://www.parinc.com/products/RCFT).
-6. **Dubois B et al. (2002)**. “The 5 words”: a simple and sensitive test for the diagnosis of Alzheimer’s disease. *Presse Médicale*, 31(36), 1696–1699. [PubMed 12467149](https://pubmed.ncbi.nlm.nih.gov/12467149/).
+**Propositions de conception (non validées cliniquement) :** l’ordre des aides, l’absence d’indice phonologique au profil avancé, les consignes positives, la disparition des choix erronés, les échanges sans bonne réponse, les scènes du quotidien et les seuils d’adaptation. Elles s’inspirent des sources ci-dessus sans en être une application validée. **Cette application n’a fait l’objet d’aucune étude** et ne remplace pas un suivi orthophonique.
+
+Les tests cliniques (BNT, MMSE, 5 mots, Figure de Rey…) ne sont ni reproduits ni approchés : aucun de leurs items, procédures ou barèmes n’est utilisé, et aucun résultat n’est calculé.
+
+### Références
+
+1. **HAS (2018)**. *Parcours de soins des patients présentant un trouble neurocognitif associé à la maladie d’Alzheimer ou à une maladie apparentée — fiche 14 : communiquer malgré les troubles de la mémoire ou du langage*. [PDF](https://www.has-sante.fr/upload/docs/application/pdf/2018-05/fiche_14_communiquer_troubles_memoire_langage.pdf).
+2. **HAS (2018)**. *Guide parcours de soins* (orthophonie, stimulation personnalisée, entourage formé aux techniques de communication). [PDF](https://www.has-sante.fr/upload/docs/application/pdf/2018-05/parcours_de_soins_alzheimer.pdf) ; fiche 13 [PDF](https://www.has-sante.fr/upload/docs/application/pdf/2018-05/fiche_13_prevenir_troubles_comportement.pdf).
+3. **Woods B et al. (2023)**. *Cognitive stimulation to improve cognitive functioning in people with dementia*. Cochrane, CD005562.pub3 : 37 essais, 2 766 participants. [Résumé Cochrane](https://www.cochrane.org/evidence/CD005562_can-cognitive-stimulation-benefit-people-dementia).
+4. **Woods B et al. (2018)**. *Reminiscence therapy for dementia*. Cochrane, CD001120.pub3 : 22 essais. [Résumé Cochrane](https://www.cochrane.org/evidence/CD001120_reminiscence-therapy-dementia).
+5. **de Werd MME et al. (2013)**. Errorless learning of everyday tasks in people with dementia. *Clinical Interventions in Aging*, 8, 1177–1190. [Article](https://www.dovepress.com/errorless-learning-of-everyday-tasks-in-people-with-dementia-peer-reviewed-fulltext-article-CIA).
+6. **Cerbone B, Massman PJ, Woods SP, York MK (2020)**. Benefit of phonemic cueing on confrontation naming in Alzheimer’s disease. *The Clinical Neuropsychologist*, 34(2). [Notice](https://scholars.uthscsa.edu/en/publications/benefit-of-phonemic-cueing-on-confrontation-naming-in-alzheimers-/).
+7. **Folder N et al. (2024)**. Effectiveness and characteristics of communication partner training programs for families of people with dementia. *The Gerontologist*, 64(4), gnad095 : 30 études. [Article](https://academic.oup.com/gerontologist/article/64/4/gnad095/7223749).
+8. **Eggenberger E, Heimerl K, Bennett MI (2013)**. Communication skills training in dementia care. *International Psychogeriatrics*. [PubMed 23116547](https://pubmed.ncbi.nlm.nih.gov/23116547/).
+9. **NICE NG97**, recommandation 1.5.5 (stimulation cognitive en groupe, démence légère à modérée). [Recommandations](https://www.nice.org.uk/guidance/ng97/chapter/Recommendations).
 
 ## Accessibilité et données
 
@@ -121,7 +141,11 @@ npm test
 python3 scripts/build-cache.py
 ```
 
-Tests : règles des profils, aides, choix sans doublons, argent, permutation des puzzles, disponibilité des médias, contrastes et parcours des dix jeux pour les trois profils. Après toute modification des médias ou du code, régénérer le cache. Tester également sur téléphone réel, clavier, zoom, avec un aidant et sans connexion ; une simulation DOM ne remplace pas une évaluation d’accessibilité ni une validation clinique.
+78 tests automatisés (Node + jsdom) : règles des profils, ordre des aides, indices phonologiques, absence de propositions ambiguës, consignes courtes, lieux sans recouvrement, migration des réglages, argent, puzzles, médias, contrastes, cache, et parcours complets des dix jeux dans les trois profils, avec et sans soutien supplémentaire, en vérifiant l’absence de vocabulaire d’échec. Un parcours de l’application assemblée vérifie la migration, la pause, la reprise et l’arrêt anticipé. Après toute modification des médias ou du code, régénérer le cache. Tester également sur téléphone réel, clavier, zoom, avec un aidant et sans connexion ; une simulation DOM ne remplace pas une évaluation d’accessibilité ni une validation clinique.
+
+Vérifié aussi dans Chromium (Playwright), téléphone 320, 360 et 390 px de large et ordinateur 1366 px, polices 24 et 32 px : les dix jeux terminés dans les trois profils, pause puis reprise identique, absence de débordement horizontal, commandes ≥ 60 × 60 px, texte ≥ 24 px, photos chargées, navigation au clavier et Échap ; import d’une photo et d’un son personnels, priorité dans les jeux, export puis restauration après effacement, sauvegarde version 1 ; mode hors connexion après le premier chargement (51 ressources en cache, photos et sons).
+
+**Reste à vérifier :** un essai sur téléphone Android réel (installation, son, lecture vocale), avec TalkBack, et surtout avec des personnes concernées, leurs proches et un·e orthophoniste. La pertinence des photos de démonstration et des formulations doit être relue par un professionnel.
 
 Structure : `index.html`, `style.css`, `script.js`, `store.js`, `sw.js`, `manifest.webmanifest`, `games/*.js`, `assets/photos/`, `assets/sons/`, `assets/CREDITS.md`, `scripts/`, `tests/`.
 

@@ -81,6 +81,9 @@ export default function puzzle(ctx) {
     });
   }
   paint();
+  ctx.setCaregiverTip(
+    "Le modèle reste visible. Vous pouvez guider la main, ou placer une pièce ensemble avec « Un indice ».",
+  );
   ctx.setHint(() => {
     if (!done) {
       const i = order.findIndex((v, i) => v !== i);

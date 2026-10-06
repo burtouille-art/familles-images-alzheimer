@@ -28,13 +28,18 @@ export default function recall(ctx) {
       ),
     );
     ctx.setHint(() => targets.map((p) => p.name).join(", "));
+    ctx.setCaregiverTip(
+      "Nommez chaque photo ensemble et associez-la à un usage (« la pomme, pour la tarte »). Revoir le panier est toujours possible.",
+    );
   }
   function interlude() {
     ctx.prepare(
       "Une petite parenthèse",
-      "Avant de retrouver le panier, regardons un lieu. Qu’est-ce que cette photo vous évoque ?",
+      "Avant de retrouver le panier, regardons ce paysage. Qu’est-ce qu’il vous évoque ?",
     );
-    const p = ctx.photos.find((p) => p.id === "lac");
+    const p =
+      ctx.photos.find((p) => p.personal && p.category === "Lieux") ||
+      ctx.photos.find((p) => p.id === "lac");
     ctx.body.append(
       image(p),
       button("Retrouver mon panier", retrieve, "primary"),
@@ -71,6 +76,7 @@ export default function recall(ctx) {
           if (found.size === targets.length) ctx.success(() => ctx.complete());
         } else ctx.wrong("Vous pouvez revoir le panier et réessayer.");
       });
+      b.dataset.correct = String(targets.some((t) => t.id === p.id));
       if (found.has(p.id)) {
         b.disabled = true;
         b.classList.add("found");
@@ -104,20 +110,20 @@ export default function recall(ctx) {
     const choices = document.createElement("div");
     choices.className = "choices";
     const otherPhotos = pool.filter((p) => !targets.some((t) => t.id === p.id));
-    for (const p of choiceSet(target, otherPhotos, 2, "id")) {
-      choices.append(
-        photoChoice(p, () => {
-          if (answered) return;
-          if (p.id === target.id) {
-            answered = true;
-            for (const b of choices.children) b.disabled = true;
-            ctx.success(() => {
-              found.add(target.id);
-              retrieveBinary();
-            });
-          } else ctx.wrong("Vous pouvez revoir le panier et réessayer.");
-        }),
-      );
+    for (const p of choiceSet(target, otherPhotos, 2, "id", { close: false })) {
+      const b = photoChoice(p, () => {
+        if (answered) return;
+        if (p.id === target.id) {
+          answered = true;
+          for (const b of choices.children) b.disabled = true;
+          ctx.success(() => {
+            found.add(target.id);
+            retrieveBinary();
+          });
+        } else ctx.wrong("Vous pouvez revoir le panier et réessayer.");
+      });
+      b.dataset.correct = String(p.id === target.id);
+      choices.append(b);
     }
     const cue = document.createElement("p");
     cue.className = "guide";

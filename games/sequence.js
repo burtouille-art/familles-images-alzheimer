@@ -1,74 +1,96 @@
-import { SEQUENCE, PHOTOS } from "./data.js";
-import { shuffle, button, image } from "./core.js";
+import { SCENES, PHOTOS } from "./data.js";
+import { shuffle, button, image, PRAISE } from "./core.js";
+// « Une consigne à la fois » : compréhension de consignes courtes dans une
+// scène du quotidien. Une seule action et un seul objet par consigne ; la
+// consigne suivante n'apparaît qu'après la précédente.
+const byId = (id) => PHOTOS.find((p) => p.id === id);
 export default function sequence(ctx) {
-  // On reproduit un exemple présenté ; les habitudes quotidiennes peuvent varier.
-  const raw =
-    ctx.stage === "avance"
-      ? SEQUENCE.slice(2)
-      : ctx.stage === "modere"
-        ? [SEQUENCE[0], ...SEQUENCE.slice(2)]
-        : SEQUENCE;
-  const steps = raw.map((s, i) => ({
-    ...s,
-    order: i,
-    photo: PHOTOS.find((p) => p.id === s.photo),
-  }));
-  let chosen = [];
-  ctx.prepare(
-    "Les petits gestes",
-    "Regardons un exemple de préparation du petit-déjeuner, dans cet ordre.",
-  );
-  const model = document.createElement("div");
-  model.className = "sequence-list";
-  for (const s of steps) {
-    const fig = document.createElement("div");
-    fig.className = "choice";
-    const n = document.createElement("span");
-    n.className = "order-badge";
-    n.textContent = `Étape ${s.order + 1}`;
-    fig.append(n, image(s.photo, ""), document.createTextNode(s.name));
-    model.append(fig);
-  }
-  ctx.body.append(
-    model,
-    button("À vous, retrouver cet ordre", play, "primary"),
-  );
-  function play() {
+  // La scène change d'une séance à l'autre pour varier les photos.
+  const scene = SCENES[ctx.variant?.("sequence", SCENES.length) ?? 0];
+  const steps = scene.steps.slice(0, ctx.rules.steps);
+  let index = 0;
+  function intro() {
     ctx.prepare(
-      "Dans quel ordre ?",
-      "Touchez la première étape, puis la suivante. L’ordre montré est un exemple, pas une règle pour votre quotidien.",
+      scene.title,
+      `${scene.intro} Je vous donnerai une consigne à la fois.`,
     );
-    const wrap = document.createElement("div");
-    wrap.className = "sequence-list";
-    const status = document.createElement("p");
-    status.textContent = "Choisissez la première étape.";
-    ctx.body.append(status, wrap);
-    const list = shuffle(steps);
-    for (const s of list) {
-      const b = button("", () => {
-        const target = steps[chosen.length];
-        if (s.order === target.order) {
-          chosen.push(s);
-          b.disabled = true;
-          const n = document.createElement("span");
-          n.className = "order-badge";
-          n.textContent = `Étape ${chosen.length}`;
-          b.prepend(n);
-          if (chosen.length === steps.length) ctx.success(() => ctx.complete());
-          else {
-            ctx.clearFeedback();
-            status.textContent = `C’est exact ! Choisissez maintenant l’étape ${chosen.length + 1}.`;
-            ctx.reward();
-          }
-        } else ctx.wrong("Regardons l’exemple ensemble.");
-      });
-      b.append(image(s.photo, ""), document.createTextNode(s.name));
-      wrap.append(b);
+    const row = document.createElement("div");
+    row.className = "photo-row";
+    for (const s of steps) {
+      const f = document.createElement("figure"),
+        cap = document.createElement("figcaption");
+      const p = byId(s.photo);
+      cap.textContent = p.name;
+      f.append(image(p, ""), cap);
+      row.append(f);
     }
-    ctx.setHint(
-      () =>
-        `La prochaine étape est : ${steps[Math.min(chosen.length, steps.length - 1)].name}.`,
+    ctx.body.append(row, button("Commencer", show, "primary"));
+    ctx.setHint(() => "Regardons les photos ensemble, puis commençons.");
+    ctx.setCaregiverTip(
+      "Lisez chaque consigne lentement, une seule fois, puis laissez le temps. Vous pouvez la répéter avec les mêmes mots ou montrer l’objet.",
     );
   }
-  ctx.setHint(() => steps.map((s) => `${s.order + 1}. ${s.name}`).join(" "));
+  function show() {
+    if (index >= steps.length) return ctx.complete();
+    const step = steps[index];
+    const target = byId(step.photo);
+    let answered = false;
+    ctx.prepare(scene.title, step.say, index + 1, steps.length);
+    const pool = [...scene.steps.map((s) => s.photo), ...scene.extras].filter(
+      (id) => id !== step.photo,
+    );
+    const options = shuffle([
+      target,
+      ...shuffle(pool)
+        .slice(0, ctx.rules.choices - 1)
+        .map(byId),
+    ]);
+    const choices = document.createElement("div");
+    choices.className = "choices";
+    for (const p of options) {
+      const b = button("", () => {
+        if (answered) return;
+        if (p.id === target.id) {
+          answered = true;
+          for (const c of choices.children) c.disabled = true;
+          ctx.success(
+            () => {
+              index++;
+              show();
+            },
+            `${PRAISE[index % PRAISE.length]} ${step.after}`,
+          );
+        } else {
+          ctx.wrong(`Écoutons à nouveau : ${step.say}`);
+        }
+      });
+      b.append(image(p, ""));
+      const label = document.createElement("span");
+      label.textContent = p.name;
+      b.append(label);
+      choices.append(b);
+    }
+    const repeat = document.createElement("p");
+    repeat.className = "instruction-repeat";
+    repeat.textContent = step.say;
+    ctx.body.append(repeat, choices);
+    let hints = 0;
+    ctx.setHint(() => {
+      hints++;
+      if (hints === 1) return `${step.say} ${target.context || ""}`.trim();
+      const wrong = [...choices.children].filter(
+        (b) =>
+          !b.disabled &&
+          !b.hidden &&
+          b !== choices.children[options.indexOf(target)],
+      );
+      if (wrong.length > 1) {
+        wrong[0].hidden = true;
+        return "Une photo en moins. Prenons notre temps.";
+      }
+      choices.children[options.indexOf(target)].classList.add("suggested");
+      return `C’est ${target.name.toLocaleLowerCase("fr")}, ici.`;
+    });
+  }
+  intro();
 }
