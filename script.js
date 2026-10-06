@@ -859,6 +859,11 @@ function renderPersonal() {
           "Indiquez le nom de la photo avant de l’enregistrer.";
         return;
       }
+      if (!CATEGORIES.includes(category)) {
+        status.textContent =
+          "Choisissez la famille de la photo : « Proches » pour une personne, « Objets » pour un objet de la maison…";
+        return;
+      }
       save.disabled = true;
       try {
         await storage.putPhoto({
@@ -897,7 +902,9 @@ $("upload-photo").addEventListener("change", async (e) => {
       await storage.putPhoto({
         id: `custom-${crypto.randomUUID()}`,
         name: "",
-        category: "Objets",
+        // Aucune famille par défaut : l'aidant choisit (une photo de personne
+        // rangée par erreur dans « Objets » serait proposée à nommer).
+        category: "",
         place: "",
         context: "",
         function: "",
@@ -986,7 +993,7 @@ $("import-backup").addEventListener("change", async (e) => {
         !/^custom-[a-zA-Z0-9-]{1,80}$/.test(p.id) ||
         typeof p.name !== "string" ||
         p.name.length > 80 ||
-        !CATEGORIES.includes(p.category) ||
+        !(CATEGORIES.includes(p.category) || (p.category === "" && !p.ready)) ||
         typeof p.place !== "string" ||
         p.place.length > 100 ||
         typeof p.hint !== "string" ||
@@ -1070,6 +1077,17 @@ if ("serviceWorker" in navigator && location.protocol !== "file:") {
               "Le téléchargement hors connexion a été interrompu. Rechargez l’application avec une connexion pour réessayer.";
           }
         });
+      // Quand une nouvelle version prend le relais, la page se recharge une
+      // fois : sans cela, l'ancien code resterait actif jusqu'au redémarrage.
+      if (navigator.serviceWorker.controller) {
+        let reloaded = false;
+        navigator.serviceWorker.addEventListener("controllerchange", () => {
+          if (reloaded) return;
+          reloaded = true;
+          location.reload();
+        });
+      }
+      initialRegistration.update?.().catch(() => {});
       const registration = await navigator.serviceWorker.ready;
       offlineReady = Boolean(registration.active);
       offlineStatus();

@@ -455,3 +455,32 @@ test("Chaque activité à étapes propose « Autre photo »", () => {
     assert.ok(ctx.body.children.length, name);
   }
 });
+
+test("Le mot juste : jamais le prénom d'un proche parmi les propositions", () => {
+  const relatives = ["Delphine", "Quentin", "Maman"].map((name, i) => ({
+    id: `custom-proche-${i}`,
+    name,
+    category: "Proches",
+    place: "",
+    hint: "",
+    src: `blob:https://example.org/p${i}`,
+    personal: true,
+    ready: true,
+  }));
+  for (const stage of ["leger", "modere", "avance"])
+    for (let i = 0; i < 20; i++) {
+      const ctx = create(stage);
+      ctx.photos = [...relatives, ...PHOTOS];
+      recognition(ctx);
+      const propose = buttons(ctx).find(
+        (b) => b.textContent === "Voir des propositions",
+      );
+      if (propose) propose.click();
+      for (const b of buttons(ctx))
+        assert.ok(
+          !relatives.some((r) => b.textContent === r.name),
+          b.textContent,
+        );
+      assert.ok(!ctx.body.querySelector('img[src^="blob:"]'));
+    }
+});

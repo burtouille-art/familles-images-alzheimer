@@ -85,7 +85,11 @@ export default function recognition(ctx) {
     let choicesShown = 0;
     function showChoices(count) {
       choices.replaceChildren();
-      const options = choiceSet(p, ctx.photos, count, "name", {
+      // Jamais le prénom d'un proche parmi les propositions.
+      const pool = ctx.photos.filter(
+        (x) => !["Proches", "Lieux", "Nature"].includes(x.category),
+      );
+      const options = choiceSet(p, pool, count, "name", {
         close: ctx.rules.close && count > 2,
       });
       for (const item of options) {
