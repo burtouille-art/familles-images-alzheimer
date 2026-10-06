@@ -76,7 +76,7 @@ export function validatePreferences(raw = {}) {
             Object.entries(raw.adaptation)
               .filter(
                 ([k, v]) =>
-                  /^(leger|modere|avance)-(recognition|memory|places|sorting|sequence|sounds|money|puzzle|odd|recall)$/.test(
+                  /^(leger|modere|avance)-(recognition|memory|places|sorting|sequence|sounds|money|puzzle|odd|recall|yesno|pairs|expressions)$/.test(
                     k,
                   ) &&
                   v &&

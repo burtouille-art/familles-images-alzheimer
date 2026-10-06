@@ -16,7 +16,14 @@ import {
   CATEGORIES,
   CATEGORY_ONE,
 } from "../games/core.js";
-import { PHOTOS, GAMES, SCENES } from "../games/data.js";
+import {
+  PHOTOS,
+  GAMES,
+  SCENES,
+  PAIRS,
+  PROVERBS,
+  YESNO,
+} from "../games/data.js";
 import { validatePreferences } from "../store.js";
 const root = path.resolve(import.meta.dirname, "..");
 
@@ -100,8 +107,11 @@ test("Validation de sauvegarde et échappement des noms personnels", () => {
     "&lt;img onerror=&quot;x&quot;&gt;",
   );
 });
-test("Dix jeux et tous les médias intégrés existent", () => {
-  assert.equal(GAMES.length, 10);
+test("Treize jeux et tous les médias intégrés existent", () => {
+  assert.equal(GAMES.length, 13);
+  assert.ok(PHOTOS.length >= 46);
+  assert.equal(new Set(PHOTOS.map((p) => p.id)).size, PHOTOS.length);
+  assert.equal(new Set(PHOTOS.map((p) => p.name)).size, PHOTOS.length);
   for (const g of GAMES) {
     assert.ok(fs.existsSync(path.join(root, "games", g.id + ".js")));
     assert.ok(
@@ -235,6 +245,9 @@ test("Chaque photo intégrée a des traits sémantiques et un indice phonologiqu
       assert.ok(p[field] && p[field].length > 5, `${p.id} : ${field}`);
     // Le début du mot : une syllabe orale au plus, suivie de points de suspension.
     assert.match(p.cue, /^[a-zéèêàâôûîç]{1,4}…$/, p.id);
+    // « oignon » se prononce « o… », « jean » se prononce « dj… ».
+    if (p.id === "oignon") assert.equal(p.cue, "o…");
+    if (p.id === "jean") assert.equal(p.cue, "dj…");
     const word = p.name
       .toLocaleLowerCase("fr")
       .replace(/^(une|un|des|du|la|le|l’)\s*/, "")
@@ -242,7 +255,7 @@ test("Chaque photo intégrée a des traits sémantiques et un indice phonologiqu
     const start = p.cue.replace("…", "");
     // L'indice reprend l'écriture du mot, sauf « tee-shirt » (« ti… ») et
     // « théière » (« té… »), écrits comme ils se prononcent.
-    if (!["chemise", "bouilloire"].includes(p.id))
+    if (!["chemise", "bouilloire", "oignon", "jean"].includes(p.id))
       assert.ok(word.startsWith(start), `${p.id} : ${start} / ${word}`);
   }
 });
@@ -297,4 +310,59 @@ test("Réglages : anciens réglages acceptés, nouveaux champs bornés", () => {
   assert.equal(v.voice, false);
   assert.deepEqual(v.variants, { sequence: 2 });
   assert.equal(validatePreferences({}).voice, false);
+});
+
+test("Associations : chaque paire et ses distracteurs existent, sans lien ambigu évident", () => {
+  const ids = new Set(PHOTOS.map((p) => p.id));
+  for (const pair of PAIRS) {
+    for (const id of [pair.from, pair.to, ...pair.not])
+      assert.ok(ids.has(id), id);
+    assert.ok(pair.not.length >= 3);
+    assert.ok(!pair.not.includes(pair.to) && !pair.not.includes(pair.from));
+    // Une paire réciproque ne doit jamais servir de distracteur.
+    for (const other of PAIRS)
+      if (other.from === pair.from) continue;
+      else if (other.from === pair.to)
+        assert.ok(!pair.not.includes(other.to) || other.to !== pair.from);
+    assert.match(pair.why, /\.$/);
+  }
+});
+test("Proverbes : une fin unique et des propositions distinctes", () => {
+  assert.ok(PROVERBS.length >= 20);
+  for (const p of PROVERBS) {
+    assert.match(p.start, /…$/);
+    assert.equal(new Set([p.end, ...p.others]).size, p.others.length + 1);
+    assert.ok(p.others.length >= 3);
+  }
+});
+test("Oui ou non : jamais une famille à la fois dans « oui » et dans « non »", () => {
+  for (const q of YESNO) {
+    assert.ok(!q.yes.some((c) => q.no.includes(c)), q.ask);
+    // Fruits et légumes : frontière ambiguë, jamais opposés.
+    if (q.yes.includes("Fruits")) assert.ok(!q.no.includes("Légumes"));
+    if (q.yes.includes("Légumes")) assert.ok(!q.no.includes("Fruits"));
+    // Les objets contiennent du pain et du café : pas de « non » à « cela se mange ».
+    if (/mange/.test(q.ask)) assert.ok(!q.no.includes("Objets"));
+  }
+});
+test("Scènes du quotidien : six scènes, distracteurs sans rapport avec la scène", () => {
+  assert.equal(SCENES.length, 6);
+  for (const s of SCENES)
+    for (const id of s.extras) assert.ok(!s.steps.some((t) => t.photo === id));
+});
+
+test("Noms qui se recouvrent : jamais proposés ensemble", () => {
+  const jean = PHOTOS.find((p) => p.id === "jean");
+  const chaussures = PHOTOS.find((p) => p.id === "chaussures");
+  for (let i = 0; i < 100; i++) {
+    for (const close of [true, false]) {
+      assert.ok(
+        !choiceSet(jean, PHOTOS, 4, "name", { close }).some(
+          (p) => p.id === "pantalon",
+        ),
+      );
+      const set = choiceSet(chaussures, PHOTOS, 4, "name", { close });
+      assert.ok(!set.some((p) => ["bottines", "claquettes"].includes(p.id)));
+    }
+  }
 });

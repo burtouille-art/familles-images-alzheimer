@@ -123,7 +123,10 @@ export function choiceSet(
     pool.filter(
       (x) =>
         x[key] !== correct[key] &&
-        (typeof x[key] !== "string" || !confusable(x[key], correct[key])),
+        (typeof x[key] !== "string" || !confusable(x[key], correct[key])) &&
+        // Noms qui se recouvrent (un jean est un pantalon) : jamais ensemble.
+        !(correct.near || []).includes(x.id) &&
+        !(x.near || []).includes(correct.id),
     ),
     key,
   );

@@ -1,6 +1,6 @@
 # MémoirePartage
 
-Une PWA gratuite et sans publicité pour partager des activités autour de la communication, des mots et des souvenirs : dix jeux, de vraies photos, trois profils d'accompagnement et tout le temps nécessaire. Téléphone, tablette ou ordinateur ; aucune inscription, aucun serveur applicatif, aucun service payant, aucune clé API.
+Une PWA gratuite et sans publicité pour partager des activités autour de la communication, des mots et des souvenirs : treize jeux, 46 vraies photos, trois profils d'accompagnement et tout le temps nécessaire. Téléphone, tablette ou ordinateur ; aucune inscription, aucun serveur applicatif, aucun service payant, aucune clé API.
 
 **L’application n’est ni un outil diagnostique, ni un test neuropsychologique validé, ni un traitement de la maladie d’Alzheimer. Elle ne garantit aucune amélioration ni aucun ralentissement de la maladie.** Les profils « léger », « modéré » et « avancé » sont des réglages choisis par l’aidant, pas une évaluation médicale. Pour choisir des activités appropriées à une personne, demander conseil à son équipe soignante.
 
@@ -45,22 +45,31 @@ Les champs **« Où la voit-on ? »** et **« À quoi sert-elle, ou qui est-ce ?
 
 Placer un JPG dans `assets/photos/`, ajouter ses métadonnées à `games/data.js` et son crédit à `assets/CREDITS.md`. Vérifier son sujet et sa licence. Puis exécuter `python3 scripts/build-cache.py` pour actualiser la liste du cache et sa version. Les images intégrées ne doivent contenir aucune donnée privée. Les photos de famille se chargent dans l’espace aidant, **pas dans GitHub**.
 
-## Les dix activités (version 2)
+## Les treize activités
 
 | Jeu | Ce que l’on fait ensemble | Léger / modéré / avancé |
 |---|---|---|
 | **Le mot juste** | Nommer un objet familier. Réponse dite à voix haute (validée par le proche), montrée du doigt ou touchée parmi des propositions | 10 / 6 / 3 photos ; propositions à la demande (4 / 3), d’emblée 2 au profil avancé |
 | **Ça sert à quoi ?** | Associer une photo nommée à sa famille, son usage ou l’endroit où on la trouve | 4 / 3 / 2 propositions ; toucher ou glisser-déposer |
-| **Une consigne à la fois** | Suivre de courtes consignes dans une scène du quotidien (petit-déjeuner, se préparer pour sortir, marché) | 4 / 3 / 2 consignes et autant de photos ; une seule action par consigne |
+| **Une consigne à la fois** | Suivre de courtes consignes dans une scène du quotidien (six scènes : petit-déjeuner, sortir, marché, s’habiller pour l’hiver, soupe de légumes, salade de fruits) | 4 / 3 / 2 consignes et autant de photos ; une seule action par consigne |
 | **Un lieu, un souvenir** | Regarder une photo et en parler. **Aucune bonne réponse** : choix de préférence ou « Nous en avons parlé » | 10 / 6 / 3 photos ; photos personnelles en priorité, souvenir noté affiché pour le proche |
 | **À la boulangerie** | Compter des pièces ou rendre la monnaie dans une situation d’achat | Avancé : 1 à 3 pièces et 2 choix ; modéré : petits montants ; léger : montants un peu plus élevés |
 | **À l’écoute** | Écouter un son réel, puis toucher sa photo | Aucune lecture automatique ; arrêt possible |
 | **Les photos jumelles** | Réunir des paires | 8 / 4 / 2 paires ; observation préalable au profil avancé |
 | **Chacun sa famille** | Trouver la photo d’une famille donnée | Modéré et avancé : consigne positive (« Touchez le fruit ») ; léger : trouver la photo d’une autre famille |
 | **Dans mon panier** | Observer, nommer, puis retrouver des photos | 7 / 4 / 3 photos ; une photo parmi deux au profil avancé |
+| **Oui ou non ?** | Répondre par oui ou non à une question simple sur une photo nommée (« Est-ce un fruit ? ») ; un signe de tête suffit | 10 / 6 / 3 questions ; toujours deux réponses ; frontières ambiguës (fruit / légume) exclues |
+| **Ça va ensemble** | Trouver ce qui va avec une photo (le lapin et les carottes, le bonnet et la montagne) ; 12 associations écrites pour l’application | 4 / 3 / 2 photos ; distracteurs choisis à la main, sans lien plausible |
+| **Les expressions de toujours** | Finir un proverbe connu (« Petit à petit, l’oiseau fait son… ») ; 20 proverbes du domaine public. Le langage automatique est souvent bien préservé : c’est un plaisir à partager | 4 / 3 / 2 propositions ; « Écouter le début » ; question de souvenir après chaque proverbe |
 | **La photo à réunir** | Recomposer une photo, modèle visible | 9 / 6 / 2 pièces |
 
 Les identifiants techniques des jeux n’ont pas changé : historique et adaptations des versions précédentes sont conservés.
+
+### La base de photos
+
+46 photos réelles intégrées, toutes hors connexion : 21 de la première série (Pexels), 13 fruits et légumes du jeu de données **Fruits-360** (CC BY-SA 4.0 : poire, prune, fraise, framboise, mûre, melon, poivron, oignon, chou, champignon, concombre, courgette, ail) et 12 vêtements du **Clothing dataset** (CC0 : jean, pantalon, robe, jupe, pull, chemise à carreaux, veste, veste de costume, bonnet, casquette, bottines, claquettes). Chaque photo a un contexte, un usage, une famille, un début de mot et une question d’échange rédigés pour l’application. Crédits détaillés dans `assets/CREDITS.md`.
+
+Les sources de photos libres classiques (Pexels, Wikimedia Commons) n’étaient pas joignables depuis l’environnement de développement ; les deux jeux de données ci-dessus, publiés sur GitHub avec une licence claire, ont été utilisés à la place. Les photos d’objets de la maison (clés, lunettes, horloge, téléphone…) restent à compléter : le plus parlant reste d’ajouter **vos propres photos** dans l’espace aidant.
 
 ### Aides progressives pour l’accès au mot
 
@@ -120,7 +129,7 @@ Les tests cliniques (BNT, MMSE, 5 mots, Figure de Rey…) ne sont ni reproduits 
 Repères pensés pour une personne vivant avec une maladie d’Alzheimer, du stade léger au stade avancé, et pour son proche :
 
 - **Accueil qui oriente** : « Bonjour » ou « Bonsoir » selon l’heure, avec le prénom si l’aidant l’a indiqué, et la date du jour en toutes lettres. Une seule proposition mise en avant (une photo personnelle si possible), puis les activités.
-- **Cartes entières cliquables** : toute la carte (photo, titre, phrase) est un seul grand bouton. Au profil avancé, quatre activités douces seulement (Un lieu, un souvenir ; À l’écoute ; Le mot juste ; Les photos jumelles), les autres sur demande.
+- **Cartes entières cliquables** : toute la carte (photo, titre, phrase) est un seul grand bouton. Au profil avancé, cinq activités douces d’abord (Un lieu, un souvenir ; Oui ou non ? ; Les expressions de toujours ; À l’écoute ; Le mot juste), les autres sur demande.
 - **Un écran de jeu toujours construit pareil** : en haut « Arrêter », le nom de l’activité et la progression en points (pas de compteur) ; puis la consigne ; puis la photo et les réponses.
 - **Le dock**, fixé en bas de l’écran : le retour sur la réponse, le grand bouton « Continuer tranquillement », puis Indice, Lire et Pause. Ils sont toujours au même endroit et restent visibles sans défiler.
 - **Bonne réponse marquée par une coche, une bordure et un texte**, jamais par la couleur seule. Les propositions écartées restent lisibles (contraste conservé).
@@ -158,9 +167,9 @@ npm test
 python3 scripts/build-cache.py
 ```
 
-78 tests automatisés (Node + jsdom) : règles des profils, ordre des aides, indices phonologiques, absence de propositions ambiguës, consignes courtes, lieux sans recouvrement, migration des réglages, argent, puzzles, médias, contrastes, cache, et parcours complets des dix jeux dans les trois profils, avec et sans soutien supplémentaire, en vérifiant l’absence de vocabulaire d’échec. Un parcours de l’application assemblée vérifie la migration, la pause, la reprise et l’arrêt anticipé. Après toute modification des médias ou du code, régénérer le cache. Tester également sur téléphone réel, clavier, zoom, avec un aidant et sans connexion ; une simulation DOM ne remplace pas une évaluation d’accessibilité ni une validation clinique.
+101 tests automatisés (Node + jsdom) : règles des profils, ordre des aides, indices phonologiques, absence de propositions ambiguës, consignes courtes, lieux sans recouvrement, noms qui se recouvrent (un jean est un pantalon), associations, proverbes, questions oui/non sans ambiguïté, migration des réglages, argent, puzzles, médias, contrastes, cache, et parcours complets des treize jeux dans les trois profils, avec et sans soutien supplémentaire, en vérifiant l’absence de vocabulaire d’échec. Un parcours de l’application assemblée vérifie la migration, la pause, la reprise et l’arrêt anticipé. Après toute modification des médias ou du code, régénérer le cache. Tester également sur téléphone réel, clavier, zoom, avec un aidant et sans connexion ; une simulation DOM ne remplace pas une évaluation d’accessibilité ni une validation clinique.
 
-Vérifié aussi dans Chromium (Playwright), téléphone 320, 360 et 390 px de large et ordinateur 1366 px, polices 24 et 32 px : les dix jeux terminés dans les trois profils, pause puis reprise identique, absence de débordement horizontal, commandes ≥ 60 × 60 px, texte ≥ 24 px, photos chargées, navigation au clavier et Échap ; import d’une photo et d’un son personnels, priorité dans les jeux, export puis restauration après effacement, sauvegarde version 1 ; mode hors connexion après le premier chargement (51 ressources en cache, photos et sons).
+Vérifié aussi dans Chromium (Playwright), téléphone 320, 360 et 390 px de large et ordinateur 1366 px, polices 24 et 32 px : les treize jeux terminés dans les trois profils (39 parcours par format d’écran), pause puis reprise identique, absence de débordement horizontal, commandes ≥ 60 × 60 px, texte ≥ 24 px, photos chargées, navigation au clavier et Échap ; import d’une photo et d’un son personnels, priorité dans les jeux, export puis restauration après effacement, sauvegarde version 1 ; mode hors connexion après le premier chargement (82 ressources en cache : photos, sons et police).
 
 **Reste à vérifier :** un essai sur téléphone Android réel (installation, son, lecture vocale), avec TalkBack, et surtout avec des personnes concernées, leurs proches et un·e orthophoniste. La pertinence des photos de démonstration et des formulations doit être relue par un professionnel.
 
@@ -168,4 +177,4 @@ Structure : `index.html`, `style.css`, `script.js`, `store.js`, `sw.js`, `manife
 
 ## Licences
 
-Code : **MIT**, voir `LICENSE`. Photographies : **licence Pexels**, différente de MIT. Enregistrements : **CC0 1.0**. Voir les liens et crédits de chaque fichier dans `assets/CREDITS.md`. La police Atkinson Hyperlegible est distribuée sous licence SIL OFL 1.1 (`assets/fonts/OFL.txt`). Le logo typographique sert uniquement d’icône d’application ; tous les stimuli photographiques des jeux sont des photos réelles. Aucun emoji ni dessin ne remplace une photo dans les activités.
+Code : **MIT**, voir `LICENSE`. Photographies : **licence Pexels** (première série), **CC BY-SA 4.0** (Fruits-360) et **CC0** (Clothing dataset), différentes de MIT. Enregistrements : **CC0 1.0**. Voir les liens et crédits de chaque fichier dans `assets/CREDITS.md`. La police Atkinson Hyperlegible est distribuée sous licence SIL OFL 1.1 (`assets/fonts/OFL.txt`). Le logo typographique sert uniquement d’icône d’application ; tous les stimuli photographiques des jeux sont des photos réelles. Aucun emoji ni dessin ne remplace une photo dans les activités.

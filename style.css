@@ -753,6 +753,46 @@ main {
   font-weight: 700;
 }
 
+/* Nouvelles activités */
+.pair-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  gap: 28px;
+  align-items: start;
+}
+.pair-from .big-photo {
+  height: min(36vh, 340px);
+}
+.yes-no {
+  grid-template-columns: 1fr 1fr !important;
+}
+.yes-no .choice {
+  text-align: center;
+  font-size: calc(var(--font-size-base) + 8px);
+  min-height: 96px;
+}
+.proverb-card {
+  background: var(--surface);
+  border: 2px solid var(--line);
+  border-radius: var(--radius);
+  padding: 24px;
+  display: grid;
+  gap: 16px;
+  justify-items: start;
+}
+.proverb {
+  font-size: calc(var(--font-size-base) + 8px);
+  line-height: 1.35;
+  font-weight: 700;
+  margin: 0;
+}
+.proverb-photo {
+  width: 100%;
+  height: 200px;
+  object-fit: contain;
+  border-radius: var(--radius-small);
+}
+
 /* Le dock : retour de la réponse, « Continuer » et aides, toujours en bas. */
 .dock {
   position: sticky;
@@ -1147,14 +1187,42 @@ input[type="file"]:focus-visible + *,
   .game-body {
     margin: 18px 0;
   }
+  /* Questions à deux réponses : la photo se fait plus petite pour que
+     « Oui », « Non » ou les propositions restent visibles sans défiler. */
+  .yesno-layout .big-photo,
+  .pair-from .big-photo {
+    height: min(20vh, 190px);
+  }
+  .proverb-photo {
+    display: none;
+  }
+  .pair-layout .choices {
+    grid-template-columns: 1fr 1fr;
+  }
+  .pair-layout .choice img {
+    height: 100px;
+  }
   .photo-question,
+  .pair-layout,
   .puzzle-layout {
     grid-template-columns: 1fr;
     gap: 18px;
   }
   .big-photo {
-    height: min(30vh, 260px);
+    height: min(27vh, 240px);
     padding: 6px;
+  }
+  .large-text .big-photo {
+    height: min(22vh, 200px);
+  }
+  .yesno-layout .big-photo,
+  .pair-from .big-photo,
+  .large-text .yesno-layout .big-photo,
+  .large-text .pair-from .big-photo {
+    height: min(18vh, 170px);
+  }
+  .game-name {
+    font-size: var(--font-size-base);
   }
   .choices {
     grid-template-columns: 1fr 1fr;

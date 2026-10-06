@@ -20,6 +20,9 @@ import money from "./games/money.js";
 import puzzle from "./games/puzzle.js";
 import odd from "./games/odd.js";
 import recall from "./games/recall.js";
+import yesno from "./games/yesno.js";
+import pairs from "./games/pairs.js";
+import expressions from "./games/expressions.js";
 const $ = (id) => document.getElementById(id);
 const activities = {
   recognition,
@@ -32,6 +35,9 @@ const activities = {
   puzzle,
   odd,
   recall,
+  yesno,
+  pairs,
+  expressions,
 };
 let prefs = storage.loadPreferences(),
   personal = [],
@@ -53,7 +59,7 @@ let hintHandler = null,
   restOffered = false,
   showAll = false;
 // Activités proposées d'abord au profil avancé : regarder, écouter, échanger.
-const GENTLE = ["places", "sounds", "recognition", "memory"];
+const GENTLE = ["places", "yesno", "expressions", "sounds", "recognition"];
 const views = ["home", "play", "settings", "done"];
 function showView(name) {
   stopAudio();
@@ -466,7 +472,7 @@ function renderHome() {
   }
   $("show-all").hidden = !gentle || showAll;
   $("activities-lead").textContent = gentle
-    ? "Quatre activités douces, à faire ensemble."
+    ? "Cinq activités douces, à faire ensemble."
     : "Touchez celle qui vous plaît.";
 }
 $("show-all").addEventListener("click", () => {

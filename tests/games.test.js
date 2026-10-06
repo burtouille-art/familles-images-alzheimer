@@ -13,6 +13,9 @@ import money from "../games/money.js";
 import puzzle from "../games/puzzle.js";
 import odd from "../games/odd.js";
 import recall from "../games/recall.js";
+import yesno from "../games/yesno.js";
+import pairs from "../games/pairs.js";
+import expressions from "../games/expressions.js";
 const functions = {
   recognition,
   memory,
@@ -24,6 +27,9 @@ const functions = {
   puzzle,
   odd,
   recall,
+  yesno,
+  pairs,
+  expressions,
 };
 function create(stage, support = 0) {
   const dom = new JSDOM(
@@ -105,9 +111,45 @@ const correctButton = (ctx) =>
 const photoOf = (b) =>
   PHOTOS.find((p) => p.src === b.querySelector("img").getAttribute("src"));
 // Aucun texte de jeu ne doit être une note, un échec ou une sanction.
-const FORBIDDEN = /faux|erreur|raté|échec|perdu|mauvais|score|points?\b/i;
+const FORBIDDEN =
+  /\bfaux\b|erreur|raté|échec|perdu|mauvais|\bscore\b|\bpoints\b/i;
 
 const solvers = {
+  yesno(ctx) {
+    for (let i = 0; i < ctx.rules.rounds; i++) {
+      const b = visible(ctx).filter((b) => b.dataset.correct);
+      assert.equal(b.length, 2, "toujours deux réponses : oui ou non");
+      assert.deepEqual(
+        b.map((x) => x.textContent),
+        ["Oui", "Non"],
+      );
+      if (i === 0) b.find((x) => x.dataset.correct === "false").click();
+      correctButton(ctx).click();
+      next(ctx);
+    }
+  },
+  pairs(ctx) {
+    for (let i = 0; i < ctx.rules.rounds; i++) {
+      assert.equal(
+        ctx.body.querySelectorAll(".choices .choice").length,
+        ctx.rules.choices,
+      );
+      correctButton(ctx).click();
+      next(ctx);
+    }
+  },
+  expressions(ctx) {
+    for (let i = 0; i < ctx.rules.rounds; i++) {
+      assert.equal(
+        ctx.body.querySelectorAll(".text-choices .choice").length,
+        ctx.rules.choices,
+      );
+      assert.match(ctx.body.querySelector(".proverb").textContent, /…$/);
+      correctButton(ctx).click();
+      assert.doesNotMatch(ctx.body.querySelector(".proverb").textContent, /…$/);
+      next(ctx);
+    }
+  },
   recognition(ctx, stage) {
     for (let i = 0; i < ctx.rules.rounds; i++) {
       if (i === 0 && stage !== "avance") {

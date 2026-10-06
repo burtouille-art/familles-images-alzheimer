@@ -70,7 +70,7 @@ test("Application assemblée : migration, aidant, profil avancé, pause, reprise
   assert.equal(saved().font, 32);
   assert.equal(saved().history.length, 1);
   assert.equal(saved().adaptation["leger-recognition"].support, 1);
-  assert.equal(document.querySelectorAll(".game-card").length, 10);
+  assert.equal(document.querySelectorAll(".game-card").length, 13);
 
   document.getElementById("caregiver").click();
   await new Promise((resolve) => setTimeout(resolve, 20));
@@ -97,11 +97,11 @@ test("Application assemblée : migration, aidant, profil avancé, pause, reprise
   // Profil avancé : quatre activités douces d'abord, les autres sur demande.
   const visibleCards = () =>
     [...document.querySelectorAll(".game-card")].filter((c) => !c.hidden);
-  assert.equal(visibleCards().length, 4);
+  assert.equal(visibleCards().length, 5);
   assert.equal(document.getElementById("show-all").hidden, false);
   assert.match(document.getElementById("today").textContent, /^Nous sommes /);
   document.getElementById("show-all").click();
-  assert.equal(visibleCards().length, 10);
+  assert.equal(visibleCards().length, 13);
   document
     .querySelector('.game-card[aria-label="Jouer à Le mot juste"]')
     .click();
