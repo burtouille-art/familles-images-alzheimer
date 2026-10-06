@@ -21,8 +21,8 @@ export default function money(ctx) {
     ctx.prepare(
       "À la boulangerie",
       q.type === "count"
-        ? "Chaque carte est une pièce de 1 €. Combien d’euros avons-nous ?"
-        : `Nous achetons ${ITEMS[round % ITEMS.length]}. Combien la boulangère nous rend-elle ?`,
+        ? "Chaque carte est une pièce de 1 €. Combien d’euros avons-nous ?"
+        : `Nous achetons ${ITEMS[round % ITEMS.length]}. Combien la boulangère nous rend-elle ?`,
       round + 1,
       ctx.rules.rounds,
     );

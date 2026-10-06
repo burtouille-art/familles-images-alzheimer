@@ -38,7 +38,7 @@ export default function odd(ctx) {
     } else {
       target = others[0];
       options = shuffle([...pick(category).slice(0, count - 1), target]);
-      instruction = `Toutes ces photos sauf une sont dans la famille « ${category} ». Laquelle vient d’une autre famille ?`;
+      instruction = `Toutes ces photos sauf une sont dans la famille « ${category} ». Laquelle vient d’une autre famille ?`;
     }
     let answered = false;
     ctx.prepare("Chacun sa famille", instruction, round + 1, ctx.rules.rounds);

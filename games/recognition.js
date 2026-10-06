@@ -16,10 +16,10 @@ export default function recognition(ctx) {
     let level = ctx.rules.support ? 1 : 0;
     let answered = false;
     ctx.prepare(
-      advanced ? "Regardons cette photo" : "Quel est son nom ?",
+      advanced ? "Regardons cette photo" : "Quel est son nom ?",
       advanced
-        ? "Regardez la photo. Touchez son nom, ou dites-le ensemble."
-        : "Dites son nom, montrez-le ou touchez « Voir des propositions ».",
+        ? "Touchez son nom, ou dites-le ensemble."
+        : "Dites son nom, ou touchez « Voir des propositions ».",
       round + 1,
       ctx.rules.rounds,
     );
@@ -62,7 +62,7 @@ export default function recognition(ctx) {
         ? `Pour en parler : ${p.talk}`
         : p.hint
           ? `Pour en parler : ${p.hint}`
-          : "Pour en parler : cette photo vous rappelle-t-elle quelque chose ?";
+          : "Pour en parler : cette photo vous rappelle-t-elle quelque chose ?";
       side.append(talk);
       ctx.success(() => {
         round++;

@@ -35,7 +35,7 @@ export default function recall(ctx) {
   function interlude() {
     ctx.prepare(
       "Une petite parenthèse",
-      "Avant de retrouver le panier, regardons ce paysage. Qu’est-ce qu’il vous évoque ?",
+      "Avant de retrouver le panier, regardons ce paysage. Qu’est-ce qu’il vous évoque ?",
     );
     const p =
       ctx.photos.find((p) => p.personal && p.category === "Lieux") ||
@@ -52,7 +52,7 @@ export default function recall(ctx) {
     if (found.size === targets.length) return ctx.complete();
     if (ctx.stage === "avance") return retrieveBinary();
     ctx.prepare(
-      "Qu’aviez-vous dans le panier ?",
+      "Qu’aviez-vous dans le panier ?",
       "Touchez les photos que vous venez de voir. Vous pouvez revoir le panier à tout moment.",
     );
     const choices = document.createElement("div");
@@ -102,7 +102,7 @@ export default function recall(ctx) {
     if (!target) return ctx.complete();
     let answered = false;
     ctx.prepare(
-      "Qu’aviez-vous dans le panier ?",
+      "Qu’aviez-vous dans le panier ?",
       "Choisissez une des deux photos. Nous pouvons regarder ensemble.",
       found.size + 1,
       targets.length,

@@ -4,22 +4,22 @@ import { image, choiceSet, button, CATEGORIES, PRAISE, lower } from "./core.js";
 // Le nom est toujours écrit : on travaille l'association, pas la dénomination.
 const KINDS = {
   category: {
-    title: "Dans quelle famille ?",
-    ask: (p) => `${p.name} : quelle famille ?`,
+    title: "Dans quelle famille ?",
+    ask: (p) => `${p.name} : quelle famille ?`,
     answer: (p) => p.category,
     pool: () => CATEGORIES.filter((c) => !["Proches", "Nature"].includes(c)),
   },
   function: {
-    title: "Ça sert à quoi ?",
-    ask: (p) => `${p.name} : qu’en fait-on ?`,
+    title: "Ça sert à quoi ?",
+    ask: (p) => `${p.name} : qu’en fait-on ?`,
     answer: (p) => p.function,
     // Usages d'autres familles seulement : pas d'usage voisin ambigu.
     pool: (photos, p) =>
       photos.filter((x) => x.category !== p.category).map((x) => x.function),
   },
   place: {
-    title: "À quel endroit ?",
-    ask: (p) => `${p.name} : à quel endroit, d’habitude ?`,
+    title: "À quel endroit ?",
+    ask: (p) => `${p.name} : à quel endroit, d’habitude ?`,
     // Uniquement pour les photos dont les lieux habituels sont décrits :
     // les distracteurs viennent de pièces sans recouvrement possible.
     answer: (p) => (p.zones ? p.place : null),

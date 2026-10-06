@@ -13,6 +13,9 @@ export const defaults = {
   vibration: false,
   guidance: false,
   voice: false,
+  contrast: false,
+  rest: true,
+  name: "",
   variants: {},
   adaptation: {},
   history: [],
@@ -45,6 +48,12 @@ export function validatePreferences(raw = {}) {
     vibration: raw.vibration === true,
     guidance: raw.guidance === true,
     voice: raw.voice === true,
+    contrast: raw.contrast === true,
+    rest: raw.rest !== false,
+    name:
+      typeof raw.name === "string"
+        ? raw.name.replace(/[<>]/g, "").trim().slice(0, 40)
+        : "",
     variants:
       raw.variants &&
       typeof raw.variants === "object" &&

@@ -46,12 +46,21 @@ let hintHandler = null,
   hadDifficulty = false,
   sessionToken = 0,
   stepsDone = 0,
-  praiseIndex = 0;
+  praiseIndex = 0,
+  lastPressed = null,
+  guardUntil = 0,
+  sessionStart = 0,
+  restOffered = false,
+  showAll = false;
+// Activités proposées d'abord au profil avancé : regarder, écouter, échanger.
+const GENTLE = ["places", "sounds", "recognition", "memory"];
 const views = ["home", "play", "settings", "done"];
 function showView(name) {
   stopAudio();
   speechSynthesisSafeCancel();
   views.forEach((id) => ($(id).hidden = id !== name));
+  document.body.classList.toggle("in-game", name === "play");
+  if (name === "home") renderHome();
   $("main").focus();
   window.scrollTo({ top: 0, behavior: "instant" });
 }
@@ -66,6 +75,11 @@ function applyPreferences() {
     `${prefs.font}px`,
   );
   document.body.classList.toggle("large-text", prefs.font > 24);
+  document.documentElement.classList.toggle("high-contrast", prefs.contrast);
+  $("contrast").checked = prefs.contrast;
+  $("rest").checked = prefs.rest;
+  if (document.activeElement !== $("person-name"))
+    $("person-name").value = prefs.name;
   $("sound").checked = prefs.sound;
   $("vibration").checked = prefs.vibration;
   $("guidance").checked = prefs.guidance;
@@ -209,7 +223,9 @@ function startGame(id) {
   showView("play");
   $("caregiver-tip").hidden = true;
   $("tip-toggle").setAttribute("aria-expanded", "false");
-  $("game-domain").textContent = g.domain;
+  $("game-domain").textContent = g.title;
+  sessionStart ||= Date.now();
+  $("rest-suggestion").hidden = true;
   const key = `${prefs.stage}-${id}`;
   const ctx = {
     stage: prefs.stage,
@@ -237,6 +253,8 @@ function startGame(id) {
         text &&
         (prefs.guidance || prefs.stage === "avance")
       );
+      // Le conseil est déjà affiché sous le jeu : pas besoin du bouton.
+      $("tip-toggle").hidden = !text || !$("guide").hidden;
     },
     share(next, message = "Merci pour ce moment d’échange.") {
       stepsDone++;
@@ -252,10 +270,11 @@ function startGame(id) {
       $("hint").disabled = false;
       $("game-title").textContent = title;
       $("instruction").textContent = instruction;
-      $("game-progress").textContent =
-        index && total
-          ? `${index} sur ${total} · sans se presser`
-          : "Tout votre temps";
+      paintProgress(index, total);
+      // Évite qu'un double toucher sur l'écran précédent ne réponde ici.
+      guardUntil = performance.now() + 350;
+      lastPressed = null;
+      offerRest();
       $("guide").hidden = true;
       $("tip-toggle").hidden = true;
       $("caregiver-tip").hidden = true;
@@ -276,6 +295,8 @@ function startGame(id) {
       $("feedback").textContent = "";
     },
     success(next, message) {
+      if (lastPressed?.classList.contains("choice"))
+        lastPressed.classList.add("chosen");
       if (!hadHelp && !hadDifficulty) mark("success");
       stepsDone++;
       reward();
@@ -317,6 +338,53 @@ function startGame(id) {
   };
   activities[id](ctx);
 }
+function paintProgress(index, total) {
+  const bar = $("game-progress");
+  bar.replaceChildren();
+  if (!(index && total)) {
+    bar.setAttribute("aria-label", "Tout votre temps");
+    return;
+  }
+  bar.setAttribute(
+    "aria-label",
+    `Étape ${index} sur ${total}, sans se presser`,
+  );
+  for (let i = 1; i <= total; i++) {
+    const dot = document.createElement("span");
+    if (i < index) dot.className = "done";
+    if (i === index) dot.className = "now";
+    bar.append(dot);
+  }
+}
+// Après 20 minutes, une proposition de pause, une seule fois, sans insister.
+function offerRest() {
+  if (!prefs.rest || restOffered || !sessionStart) return;
+  if (Date.now() - sessionStart < 20 * 60 * 1000) return;
+  restOffered = true;
+  $("rest-suggestion").hidden = false;
+}
+$("rest-pause").addEventListener("click", () => {
+  $("rest-suggestion").hidden = true;
+  openPause();
+});
+$("rest-dismiss").addEventListener("click", () => {
+  $("rest-suggestion").hidden = true;
+});
+// Garde contre les touchers involontaires (tremblements, double toucher).
+$("game-body").addEventListener(
+  "click",
+  (e) => {
+    const b = e.target.closest("button");
+    if (!b) return;
+    if (e.isTrusted && performance.now() < guardUntil) {
+      e.stopImmediatePropagation();
+      e.preventDefault();
+      return;
+    }
+    lastPressed = b;
+  },
+  true,
+);
 $("hint").addEventListener("click", () => {
   if (!hintHandler) return;
   markHelp();
@@ -353,19 +421,59 @@ $("start-photo").addEventListener("click", () => startGame("places"));
 function buildHome() {
   const grid = $("game-grid");
   for (const g of GAMES) {
-    const card = document.createElement("article");
+    const card = document.createElement("button");
+    card.type = "button";
     card.className = "game-card";
-    card.innerHTML = `<img src="assets/photos/${g.cover}.jpg" alt="" loading="lazy" width="640" height="420"><div class="game-card-content"><p class="domain">${g.domain}</p><h3>${g.title}</h3><p>${g.description}</p></div>`;
-    const b = button("Jouer", () => startGame(g.id));
-    b.setAttribute("aria-label", `Jouer à ${g.title}`);
-    const arrow = document.createElement("span");
-    arrow.textContent = "→";
-    arrow.setAttribute("aria-hidden", "true");
-    b.append(arrow);
-    card.lastElementChild.append(b);
+    card.dataset.game = g.id;
+    card.setAttribute("role", "listitem");
+    card.setAttribute("aria-label", `Jouer à ${g.title}`);
+    card.innerHTML = `<img src="assets/photos/${g.cover}.jpg" alt="" loading="lazy" width="640" height="420"><span class="card-text"><h3>${g.title}</h3><span>${g.description}</span><span class="go" aria-hidden="true">Commencer <svg class="icon"><use href="#i-arrow"/></svg></span></span>`;
+    card.addEventListener("click", () => startGame(g.id));
     grid.append(card);
   }
 }
+// Accueil : salutation selon l'heure, date du jour (repère dans le temps),
+// photo personnelle mise en avant, activités ordonnées selon le profil.
+function renderHome() {
+  const now = new Date();
+  const hour = now.getHours();
+  const hello = hour >= 18 || hour < 5 ? "Bonsoir" : "Bonjour";
+  $("greeting").textContent = prefs.name ? `${hello} ${prefs.name}` : hello;
+  const day = now.toLocaleDateString("fr-FR", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
+  $("today").textContent = `Nous sommes ${day}.`;
+  const mine = personal.filter((p) => p.ready);
+  const featured = mine.find((p) => p.category === "Lieux") || mine[0];
+  $("featured-photo").src = featured ? featured.src : "assets/photos/lac.jpg";
+  $("featured-photo").alt = featured
+    ? featured.name
+    : "Un lac entouré de montagnes";
+  const gentle = prefs.stage === "avance";
+  const order = gentle
+    ? [
+        ...GENTLE,
+        ...GAMES.map((g) => g.id).filter((id) => !GENTLE.includes(id)),
+      ]
+    : GAMES.map((g) => g.id);
+  const grid = $("game-grid");
+  for (const id of order) {
+    const card = grid.querySelector(`[data-game="${id}"]`);
+    grid.append(card);
+    card.hidden = gentle && !showAll && !GENTLE.includes(id);
+  }
+  $("show-all").hidden = !gentle || showAll;
+  $("activities-lead").textContent = gentle
+    ? "Quatre activités douces, à faire ensemble."
+    : "Touchez celle qui vous plaît.";
+}
+$("show-all").addEventListener("click", () => {
+  showAll = true;
+  renderHome();
+  $("game-grid").querySelectorAll(".game-card")[GENTLE.length]?.focus();
+});
 function stageButtons() {
   const wrap = $("stage-options");
   wrap.replaceChildren();
@@ -377,7 +485,7 @@ function stageButtons() {
       "3 étapes au plus, 2 propositions, une action à la fois. Regarder, écouter et échanger ensemble.",
   };
   for (const [key, p] of Object.entries(PROFILES)) {
-    const b = button(p.label, () => {
+    const b = button("", () => {
       prefs.stage = key;
       if (key === "avance" && prefs.font < 28) prefs.font = 28;
       persist();
@@ -386,9 +494,13 @@ function stageButtons() {
       fontButtons();
     });
     b.setAttribute("aria-pressed", String(key === prefs.stage));
+    const name = document.createElement("span");
+    name.className = "stage-name";
+    name.textContent = p.label;
     const detail = document.createElement("span");
+    detail.className = "stage-detail";
     detail.textContent = details[key];
-    b.append(detail);
+    b.append(name, detail);
     wrap.append(b);
   }
 }
@@ -411,11 +523,22 @@ for (const [id, key] of [
   ["vibration", "vibration"],
   ["guidance", "guidance"],
   ["voice", "voice"],
+  ["contrast", "contrast"],
+  ["rest", "rest"],
 ])
   $(id).addEventListener("change", (e) => {
     prefs[key] = e.target.checked;
     persist();
+    applyPreferences();
   });
+$("person-name").addEventListener("input", (e) => {
+  prefs.name = e.target.value.replace(/[<>]/g, "").slice(0, 40);
+  persist();
+});
+$("person-name").addEventListener("change", (e) => {
+  prefs.name = e.target.value.replace(/[<>]/g, "").trim().slice(0, 40);
+  persist();
+});
 $("reset-adaptation").addEventListener("click", () => {
   prefs.adaptation = {};
   persist();
@@ -723,9 +846,14 @@ $("import-backup").addEventListener("change", async (e) => {
 });
 buildHome();
 applyPreferences();
-refreshPersonal().catch(() => {
-  /* Les photos de démonstration restent disponibles. */
-});
+renderHome();
+refreshPersonal()
+  .then(() => {
+    if (!$("home").hidden) renderHome();
+  })
+  .catch(() => {
+    /* Les photos de démonstration restent disponibles. */
+  });
 // Installation : le statut « prêt » n'apparaît qu'après le cache complet des médias.
 let offlineReady = false;
 function offlineStatus() {

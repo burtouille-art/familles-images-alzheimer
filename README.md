@@ -115,6 +115,23 @@ Les tests cliniques (BNT, MMSE, 5 mots, Figure de Rey…) ne sont ni reproduits 
 8. **Eggenberger E, Heimerl K, Bennett MI (2013)**. Communication skills training in dementia care. *International Psychogeriatrics*. [PubMed 23116547](https://pubmed.ncbi.nlm.nih.gov/23116547/).
 9. **NICE NG97**, recommandation 1.5.5 (stimulation cognitive en groupe, démence légère à modérée). [Recommandations](https://www.nice.org.uk/guidance/ng97/chapter/Recommendations).
 
+## Ergonomie (version 3)
+
+Repères pensés pour une personne vivant avec une maladie d’Alzheimer, du stade léger au stade avancé, et pour son proche :
+
+- **Accueil qui oriente** : « Bonjour » ou « Bonsoir » selon l’heure, avec le prénom si l’aidant l’a indiqué, et la date du jour en toutes lettres. Une seule proposition mise en avant (une photo personnelle si possible), puis les activités.
+- **Cartes entières cliquables** : toute la carte (photo, titre, phrase) est un seul grand bouton. Au profil avancé, quatre activités douces seulement (Un lieu, un souvenir ; À l’écoute ; Le mot juste ; Les photos jumelles), les autres sur demande.
+- **Un écran de jeu toujours construit pareil** : en haut « Arrêter », le nom de l’activité et la progression en points (pas de compteur) ; puis la consigne ; puis la photo et les réponses.
+- **Le dock**, fixé en bas de l’écran : le retour sur la réponse, le grand bouton « Continuer tranquillement », puis Indice, Lire et Pause. Ils sont toujours au même endroit et restent visibles sans défiler.
+- **Bonne réponse marquée par une coche, une bordure et un texte**, jamais par la couleur seule. Les propositions écartées restent lisibles (contraste conservé).
+- **Garde contre les touchers involontaires** : pendant 0,35 s après l’affichage d’une étape, un toucher n’est pas pris en compte, pour éviter qu’un double toucher ou un tremblement réponde à la question suivante.
+- **Pendant un jeu, pas d’accès direct à l’espace aidant** ni de pied de page : moins de distractions et pas de sortie par erreur. « Arrêter » ouvre la pause.
+- **Conseils au proche placés sous le jeu**, pour que la photo reste la première chose vue.
+- **Proposition de pause après 20 minutes**, une seule fois, désactivable. Aucun mécanisme n’incite à continuer.
+- **Police Atkinson Hyperlegible** (Braille Institute, licence SIL OFL 1.1), conçue pour distinguer les lettres semblables ; intégrée à l’application et disponible hors connexion. Pas d’italique ni de majuscules continues.
+- **Contraste renforcé** (noir sur blanc, bordures épaisses) en option ; espaces insécables devant « ? » et « ! » pour éviter un signe isolé en début de ligne.
+- **Espace aidant en cinq sections** numérotées, avec une navigation par onglets : profil, affichage et sons, photos, sauvegarde, conseils.
+
 ## Accessibilité et données
 
 - Texte principal et commandes de 24 px minimum, choix de 28 ou 32 px ; boutons de 60 px minimum, généralement 64 px.
@@ -151,4 +168,4 @@ Structure : `index.html`, `style.css`, `script.js`, `store.js`, `sw.js`, `manife
 
 ## Licences
 
-Code : **MIT**, voir `LICENSE`. Photographies : **licence Pexels**, différente de MIT. Enregistrements : **CC0 1.0**. Voir les liens et crédits de chaque fichier dans `assets/CREDITS.md`. Le logo typographique sert uniquement d’icône d’application ; tous les stimuli photographiques des jeux sont des photos réelles. Aucun emoji ni dessin ne remplace une photo dans les activités.
+Code : **MIT**, voir `LICENSE`. Photographies : **licence Pexels**, différente de MIT. Enregistrements : **CC0 1.0**. Voir les liens et crédits de chaque fichier dans `assets/CREDITS.md`. La police Atkinson Hyperlegible est distribuée sous licence SIL OFL 1.1 (`assets/fonts/OFL.txt`). Le logo typographique sert uniquement d’icône d’application ; tous les stimuli photographiques des jeux sont des photos réelles. Aucun emoji ni dessin ne remplace une photo dans les activités.

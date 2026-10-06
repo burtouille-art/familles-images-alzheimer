@@ -80,12 +80,34 @@ test("Application assemblée : migration, aidant, profil avancé, pause, reprise
   );
   advanced.click();
   assert.equal(saved().stage, "avance");
+  const name = document.getElementById("person-name");
+  name.value = "Jeanne";
+  name.dispatchEvent(new window.Event("change"));
+  assert.equal(saved().name, "Jeanne");
+  const contrast = document.getElementById("contrast");
+  contrast.checked = true;
+  contrast.dispatchEvent(new window.Event("change"));
+  assert.ok(document.documentElement.classList.contains("high-contrast"));
+  contrast.checked = false;
+  contrast.dispatchEvent(new window.Event("change"));
   document.getElementById("close-settings").click();
+  assert.match(document.getElementById("greeting").textContent, /Jeanne$/);
 
   // Le mot juste, profil avancé : deux propositions et des aides progressives.
-  [...document.querySelectorAll(".game-card button")]
-    .find((b) => b.getAttribute("aria-label") === "Jouer à Le mot juste")
+  // Profil avancé : quatre activités douces d'abord, les autres sur demande.
+  const visibleCards = () =>
+    [...document.querySelectorAll(".game-card")].filter((c) => !c.hidden);
+  assert.equal(visibleCards().length, 4);
+  assert.equal(document.getElementById("show-all").hidden, false);
+  assert.match(document.getElementById("today").textContent, /^Nous sommes /);
+  document.getElementById("show-all").click();
+  assert.equal(visibleCards().length, 10);
+  document
+    .querySelector('.game-card[aria-label="Jouer à Le mot juste"]')
     .click();
+  // Pendant le jeu, pas d'accès direct à l'espace aidant.
+  assert.ok(document.body.classList.contains("in-game"));
+  assert.equal(document.querySelectorAll("#game-progress span").length, 3);
   assert.equal(document.getElementById("play").hidden, false);
   assert.equal(
     document.querySelectorAll("#game-body .text-choices button").length,
@@ -110,8 +132,12 @@ test("Application assemblée : migration, aidant, profil avancé, pause, reprise
   assert.equal(document.getElementById("game-body").innerHTML, before);
 
   // Une bonne réponse, puis arrêt anticipé : la séance est comptée, sans score.
-  document.querySelector('#game-body button[data-correct="true"]').click();
+  const right = document.querySelector(
+    '#game-body button[data-correct="true"]',
+  );
+  right.click();
   assert.ok(document.getElementById("feedback").textContent.length);
+  assert.ok(right.classList.contains("chosen"), "coche sur la bonne réponse");
   document.getElementById("pause").click();
   assert.equal(document.getElementById("pause-finish").hidden, false);
   document.getElementById("pause-finish").click();

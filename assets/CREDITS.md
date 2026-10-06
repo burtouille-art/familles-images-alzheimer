@@ -42,3 +42,7 @@ Les fichiers `bouilloire.jpg` (une **théière** et une tasse) et `chemise.jpg` 
 Enregistrements Freesound : extraits de huit secondes maximum, passage en mono, volume normalisé à environ −25 LUFS avec transitions douces. Le jeu commence à volume réduit et propose un arrêt. Le son de confirmation est une courte sinusoïde produite localement ; il ne remplace pas les enregistrements du jeu d’écoute.
 
 Le logo typographique « m. » et les icônes d’installation sont créés pour cette application. Les photos et sons personnels ajoutés par l’aidant ne sont pas distribués avec le logiciel.
+
+## Police
+
+`assets/fonts/atkinson-400.woff2` et `atkinson-700.woff2` : **Atkinson Hyperlegible**, © 2020 Braille Institute of America, Inc., [SIL Open Font License 1.1](https://openfontlicense.org) (texte complet dans `assets/fonts/OFL.txt`), fichiers issus du paquet Fontsource 5.3.0, sous-ensemble latin.

@@ -15,7 +15,7 @@ const entries = [
     function:
       "Elle se croque, en dessert ou au goûter. On en fait aussi des tartes.",
     cue: "po…",
-    talk: "Vous la préférez croquante ou en compote ?",
+    talk: "Vous la préférez croquante ou en compote ?",
   },
   {
     id: "banane",
@@ -26,7 +26,7 @@ const entries = [
     context: "On les achète en régime, au marché ou à l’épicerie.",
     function: "On les épluche avant de les manger, souvent au petit-déjeuner.",
     cue: "ba…",
-    talk: "Vous en mangez au petit-déjeuner ?",
+    talk: "Vous en mangez au petit-déjeuner ?",
   },
   {
     id: "orange",
@@ -37,7 +37,7 @@ const entries = [
     context: "On la trouve surtout en hiver, sur les étals du marché.",
     function: "On la pèle ou on la presse pour faire du jus.",
     cue: "o…",
-    talk: "Plutôt en quartiers ou en jus ?",
+    talk: "Plutôt en quartiers ou en jus ?",
   },
   {
     id: "carotte",
@@ -48,7 +48,7 @@ const entries = [
     context: "Elles poussent dans la terre, au potager.",
     function: "On les râpe en salade ou on les cuit dans le pot-au-feu.",
     cue: "ca…",
-    talk: "Râpées ou cuites, comment les aimez-vous ?",
+    talk: "Râpées ou cuites, comment les aimez-vous ?",
   },
   {
     id: "brocoli",
@@ -59,7 +59,7 @@ const entries = [
     context: "On le trouve au rayon des légumes verts.",
     function: "On le cuit à la vapeur ou en gratin.",
     cue: "bro…",
-    talk: "Vous en avez déjà cuisiné ?",
+    talk: "Vous en avez déjà cuisiné ?",
   },
   {
     id: "tomate",
@@ -70,7 +70,7 @@ const entries = [
     context: "Elle mûrit au soleil, en été, au potager.",
     function: "On la coupe en salade ou on en fait de la sauce.",
     cue: "to…",
-    talk: "Une salade de tomates, ça vous dit en été ?",
+    talk: "Une salade de tomates, ça vous dit en été ?",
   },
   {
     id: "chat",
@@ -80,7 +80,7 @@ const entries = [
     context: "Il aime dormir au soleil, près de la fenêtre.",
     function: "C’est un animal de compagnie qui ronronne.",
     cue: "ch…",
-    talk: "Avez-vous eu un chat ? Comment s’appelait-il ?",
+    talk: "Avez-vous eu un chat ? Comment s’appelait-il ?",
   },
   {
     id: "chien",
@@ -90,7 +90,7 @@ const entries = [
     context: "On le promène en laisse, dans la rue ou au parc.",
     function: "C’est un compagnon fidèle qui aboie et garde la maison.",
     cue: "ch…",
-    talk: "Plutôt les petits chiens ou les grands ?",
+    talk: "Plutôt les petits chiens ou les grands ?",
   },
   {
     id: "lapin",
@@ -100,7 +100,7 @@ const entries = [
     context: "On le voit dans les champs, ou dans un clapier à la ferme.",
     function: "Il a de grandes oreilles et aime les carottes.",
     cue: "la…",
-    talk: "Avez-vous vu des lapins à la campagne ?",
+    talk: "Avez-vous vu des lapins à la campagne ?",
   },
   {
     id: "lac",
@@ -110,7 +110,7 @@ const entries = [
     context: "On s’y promène, entouré de montagnes et de forêts.",
     function: "On peut s’y baigner, pêcher ou faire du bateau.",
     cue: "la…",
-    talk: "Plutôt une baignade ou une promenade au bord de l’eau ?",
+    talk: "Plutôt une baignade ou une promenade au bord de l’eau ?",
     options: ["Une baignade", "Une promenade"],
   },
   {
@@ -121,7 +121,7 @@ const entries = [
     context: "Les sommets sont parfois couverts de neige.",
     function: "On y fait de la randonnée en été et du ski en hiver.",
     cue: "mon…",
-    talk: "La montagne, vous l’aimez plutôt en été ou en hiver ?",
+    talk: "La montagne, vous l’aimez plutôt en été ou en hiver ?",
     options: ["En été", "En hiver"],
   },
   {
@@ -132,7 +132,7 @@ const entries = [
     context: "Le sable, la mer et les vacances d’été.",
     function: "On s’y baigne, on s’y repose au soleil.",
     cue: "pla…",
-    talk: "Plutôt le sable chaud ou l’ombre d’un parasol ?",
+    talk: "Plutôt le sable chaud ou l’ombre d’un parasol ?",
     options: ["Le sable chaud", "L’ombre"],
   },
   {
@@ -143,7 +143,7 @@ const entries = [
     context: "Une maison avec un garage et une pelouse.",
     function: "C’est là que l’on habite, avec sa famille.",
     cue: "mai…",
-    talk: "Dans une maison, quelle pièce préférez-vous ?",
+    talk: "Dans une maison, quelle pièce préférez-vous ?",
     options: ["La cuisine", "Le jardin"],
   },
   {
@@ -154,7 +154,7 @@ const entries = [
     context: "On les voit au jardin, après une averse.",
     function: "Elles poussent sur les plantes et les arbres.",
     cue: "feu…",
-    talk: "Au jardin, plutôt les fleurs ou le potager ?",
+    talk: "Au jardin, plutôt les fleurs ou le potager ?",
     options: ["Les fleurs", "Le potager"],
   },
   {
@@ -166,7 +166,7 @@ const entries = [
     context: "On le range dans l’armoire, avec les vêtements d’été.",
     function: "On le porte quand il fait beau.",
     cue: "ti…",
-    talk: "Plutôt un tee-shirt ou une chemise ?",
+    talk: "Plutôt un tee-shirt ou une chemise ?",
   },
   {
     id: "chaussures",
@@ -177,7 +177,7 @@ const entries = [
     context: "On les laisse dans l’entrée, près de la porte.",
     function: "On les met aux pieds pour sortir et marcher.",
     cue: "chau…",
-    talk: "Des chaussures confortables pour marcher, c’est important ?",
+    talk: "Des chaussures confortables pour marcher, c’est important ?",
   },
   {
     id: "chapeau",
@@ -188,7 +188,7 @@ const entries = [
     context: "On le prend pour aller à la plage ou au jardin.",
     function: "On le met sur la tête pour se protéger du soleil.",
     cue: "cha…",
-    talk: "Portez-vous un chapeau quand il fait chaud ?",
+    talk: "Portez-vous un chapeau quand il fait chaud ?",
   },
   {
     id: "pain",
@@ -199,7 +199,7 @@ const entries = [
     context: "On l’achète chaque jour à la boulangerie.",
     function: "On en fait des tartines au petit-déjeuner.",
     cue: "p…",
-    talk: "Plutôt la croûte ou la mie ?",
+    talk: "Plutôt la croûte ou la mie ?",
   },
   {
     id: "cafe",
@@ -210,7 +210,7 @@ const entries = [
     context: "On la boit le matin, à la maison ou au café.",
     function: "On y boit le café, chaud.",
     cue: "ta…",
-    talk: "Vous prenez votre café avec du sucre ?",
+    talk: "Vous prenez votre café avec du sucre ?",
   },
   {
     id: "bouilloire",
@@ -221,7 +221,7 @@ const entries = [
     context: "On la pose sur la table, à côté des tasses.",
     function: "On y prépare le thé avec de l’eau chaude.",
     cue: "té…",
-    talk: "Plutôt thé ou café ?",
+    talk: "Plutôt thé ou café ?",
   },
   {
     id: "brosse",
@@ -232,7 +232,7 @@ const entries = [
     context: "On la range dans un verre, dans la salle de bain.",
     function: "On s’en sert pour se brosser les dents, matin et soir.",
     cue: "bro…",
-    talk: "Le matin, vous commencez par la toilette ou le petit-déjeuner ?",
+    talk: "Le matin, vous commencez par la toilette ou le petit-déjeuner ?",
   },
 ];
 const SOUNDS = {
@@ -259,7 +259,7 @@ export const GAMES = [
   },
   {
     id: "sorting",
-    title: "Ça sert à quoi ?",
+    title: "Ça sert à quoi ?",
     domain: "Associations · famille, usage, lieu",
     description: "Relier une photo à sa famille, son usage ou sa place.",
     cover: "bouilloire",

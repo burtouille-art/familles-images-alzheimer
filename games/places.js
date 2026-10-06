@@ -22,7 +22,7 @@ export default function places(ctx) {
       "Un lieu, un souvenir",
       advanced
         ? "Regardons cette photo ensemble."
-        : "Regardez cette photo. Qu’est-ce qu’elle vous évoque ?",
+        : "Regardez cette photo. Qu’est-ce qu’elle vous évoque ?",
       round + 1,
       ctx.rules.rounds,
     );
@@ -47,8 +47,8 @@ export default function places(ctx) {
     const question = document.createElement("p");
     question.className = "talk";
     question.textContent = p.personal
-      ? "Qu’est-ce que cette photo vous rappelle ?"
-      : p.talk || "Qu’est-ce que cette photo vous évoque ?";
+      ? "Qu’est-ce que cette photo vous rappelle ?"
+      : p.talk || "Qu’est-ce que cette photo vous évoque ?";
     side.append(question);
     if (p.personal && p.hint) {
       const memo = document.createElement("p");
@@ -94,9 +94,9 @@ export default function places(ctx) {
     layout.append(figure, side);
     ctx.body.append(layout);
     const prompts = [
-      "Cela vous rappelle-t-il un voyage ou une personne ?",
-      "Qu’entend-on, que sent-on dans un endroit pareil ?",
-      "Quelle saison cette photo vous évoque-t-elle ?",
+      "Cela vous rappelle-t-il un voyage ou une personne ?",
+      "Qu’entend-on, que sent-on dans un endroit pareil ?",
+      "Quelle saison cette photo vous évoque-t-elle ?",
     ];
     let i = 0;
     ctx.setHint(() => prompts[i++ % prompts.length]);
