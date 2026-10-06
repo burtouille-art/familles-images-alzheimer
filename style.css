@@ -325,7 +325,7 @@ main {
   text-align: left;
   padding: 0;
   overflow: hidden;
-  border: 2px solid var(--line);
+  border: 2px solid var(--line-strong);
   border-radius: var(--radius);
   background: var(--surface);
   box-shadow: var(--shadow);
@@ -435,7 +435,7 @@ main {
 }
 .instruction-card {
   background: var(--surface);
-  border: 2px solid var(--line);
+  border: 2px solid var(--line-strong);
   border-left: 10px solid var(--deep);
   border-radius: var(--radius);
   padding: 22px 26px;
@@ -493,7 +493,7 @@ main {
   height: min(46vh, 440px);
   object-fit: contain;
   background: var(--surface);
-  border: 2px solid var(--line);
+  border: 2px solid var(--line-strong);
   border-radius: var(--radius);
   padding: 10px;
 }
@@ -625,7 +625,7 @@ main {
 }
 .talk {
   background: var(--surface);
-  border: 2px solid var(--line);
+  border: 2px solid var(--line-strong);
   border-radius: 24px 24px 24px 6px;
   padding: 16px 20px;
   overflow-wrap: anywhere;
@@ -644,7 +644,7 @@ main {
 .photo-row figure {
   margin: 0;
   background: var(--surface);
-  border: 2px solid var(--line);
+  border: 2px solid var(--line-strong);
   border-radius: var(--radius-small);
   overflow: hidden;
 }
@@ -739,7 +739,7 @@ main {
 }
 .money-equation {
   background: var(--surface);
-  border: 2px solid var(--line);
+  border: 2px solid var(--line-strong);
   border-radius: var(--radius-small);
   padding: 20px 24px;
   margin-top: 16px;
@@ -773,7 +773,7 @@ main {
 }
 .proverb-card {
   background: var(--surface);
-  border: 2px solid var(--line);
+  border: 2px solid var(--line-strong);
   border-radius: var(--radius);
   padding: 24px;
   display: grid;
@@ -809,7 +809,7 @@ main {
 }
 .feedback {
   background: var(--surface);
-  border: 2px solid var(--line);
+  border: 2px solid var(--line-strong);
   border-left: 10px solid var(--deep);
   border-radius: var(--radius-small);
   padding: 12px 18px;
@@ -877,7 +877,7 @@ main {
   max-width: 760px;
   margin: 24px auto;
   background: var(--surface);
-  border: 2px solid var(--line);
+  border: 2px solid var(--line-strong);
   border-radius: 28px;
   padding: 40px;
   box-shadow: var(--shadow);
@@ -1036,7 +1036,7 @@ input[type="file"]:focus-visible + *,
   margin-top: 20px;
 }
 .personal-editor {
-  border: 2px solid var(--line);
+  border: 2px solid var(--line-strong);
   border-radius: var(--radius-small);
   padding: 20px;
 }
@@ -1394,7 +1394,7 @@ input[type="file"]:focus-visible + *,
   gap: 12px;
 }
 .personal-item {
-  border: 2px solid var(--line);
+  border: 2px solid var(--line-strong);
   border-radius: var(--radius-small);
   background: var(--surface);
 }
@@ -1606,5 +1606,315 @@ input[type="file"]:focus-visible + *,
   .choices.print-grid,
   .large-text .choices.print-grid {
     grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* ---------- Version 5.4 : ergonomie de l'écran de jeu ---------- */
+/* Les cartes et cadres se distinguent du fond (contraste ≥ 3:1). Les
+   panneaux purement décoratifs gardent un trait léger. */
+.instruction-card,
+.big-photo,
+.panel,
+.talk,
+.money-equation,
+.proverb-card,
+.personal-editor,
+.photo-row figure {
+  border-color: var(--line);
+}
+
+/* Le message de retour suit la réponse, dans la page. Il reste visible au
+   dessus du bas d'écran fixe. */
+.feedback {
+  max-height: none;
+  margin: 0 0 16px;
+  font-size: calc(var(--font-size-base) + 2px);
+  scroll-margin-bottom: 140px;
+  scroll-margin-top: 16px;
+}
+/* Réponse donnée : en bas, uniquement « Continuer ». */
+.answered .game-tools {
+  display: none;
+}
+.answered #next-area {
+  margin-bottom: 0;
+}
+#next-area .arming {
+  opacity: 0.55;
+}
+@media (prefers-reduced-motion: no-preference) {
+  #next-area button {
+    transition: opacity 0.25s;
+  }
+}
+/* Trois aides, toujours aux mêmes places, même quand « Passer » manque. */
+.game-tools,
+.large-text .game-tools {
+  grid-template-columns: repeat(3, 1fr);
+}
+#skip[hidden] {
+  display: inline-flex;
+  visibility: hidden;
+}
+.tool,
+.large-text .tool {
+  overflow-wrap: normal;
+  hyphens: none;
+  white-space: nowrap;
+}
+/* Confirmation d'un second toucher (suppression, remise à zéro). */
+button.confirming {
+  background: var(--sand);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* Accueil : le prénom sous la photo, les promesses en simple texte. */
+.featured-image {
+  position: relative;
+}
+.featured-caption {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  margin: 0;
+  background: #fff;
+  color: var(--ink);
+  font-weight: 700;
+  font-size: calc(var(--font-size-base) + 4px);
+  padding: 6px 16px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px #2a1e0f33;
+}
+.promise li {
+  background: none;
+  border: 0;
+  padding: 0;
+}
+.promise li::before {
+  content: "✓ ";
+  color: var(--deep);
+  font-weight: 700;
+}
+
+/* « Ma famille » : retrouver le prénom. */
+.name-cue {
+  letter-spacing: 0.04em;
+  min-width: 6ch;
+}
+.name-choices button {
+  font-size: calc(var(--font-size-base) + 6px);
+}
+.see-names {
+  width: 100%;
+}
+
+/* Fin d'activité : l'action principale d'abord, la note de l'aidant repliée. */
+.done #done-home {
+  margin-top: 8px;
+}
+.observation summary {
+  cursor: pointer;
+  min-height: var(--tap);
+  display: flex;
+  align-items: center;
+  color: var(--accent);
+}
+.observation[open] summary {
+  margin-bottom: 12px;
+}
+
+/* Téléphone : tout l'essentiel tient dans l'écran, sans défiler. */
+@media (max-width: 700px) {
+  /* En jeu, l'en-tête disparaît : « Pause » est en haut de l'activité. */
+  .in-game .site-header {
+    display: none;
+  }
+  .in-game main {
+    padding-top: 10px;
+  }
+  .play-heading {
+    flex-wrap: nowrap;
+    margin-bottom: 10px;
+  }
+  /* Le nom de l'activité répète le titre : gardé pour les grands écrans. */
+  .game-name {
+    display: none;
+  }
+  .back {
+    padding: 8px 16px;
+  }
+  .instruction-card {
+    padding: 12px 16px;
+  }
+  .instruction-card h1,
+  .large-text .instruction-card h1 {
+    font-size: calc(var(--font-size-base) + 6px);
+    margin-bottom: 4px;
+  }
+  .instruction {
+    font-size: var(--font-size-base);
+  }
+  .game-body {
+    margin: 12px 0;
+  }
+  .big-photo,
+  .large-text .big-photo,
+  .photo-question.relative .big-photo,
+  .large-text .photo-question.relative .big-photo {
+    height: min(26vh, 230px);
+  }
+  .print-large .print-photo,
+  .large-text .print-large .print-photo {
+    max-height: 30vh;
+  }
+  .family-layout {
+    gap: 12px;
+  }
+  .choice img,
+  .large-text .choice img {
+    height: min(16vh, 130px);
+  }
+  .featured-image,
+  .featured-image:has(img.whole) {
+    height: 240px;
+  }
+  .large-text .featured-image,
+  .large-text .featured-image:has(img.whole) {
+    height: 200px;
+  }
+  .large-text .welcome {
+    margin-bottom: 16px;
+  }
+  .dock {
+    margin-top: 12px;
+    padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
+  }
+  .tool {
+    flex-direction: column;
+    gap: 0;
+    padding: 4px 2px;
+    min-height: 64px;
+  }
+  .large-text .tool {
+    flex-direction: column;
+    gap: 0;
+  }
+  .tool .icon {
+    width: 26px;
+    height: 26px;
+  }
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* Téléphone : photos un peu plus petites pour que les réponses tiennent
+   dans le premier écran. */
+@media (max-width: 700px) {
+  .talk {
+    padding: 8px 14px;
+    font-size: var(--font-size-base);
+  }
+  .answer-panel {
+    gap: 10px;
+  }
+  .print-large .print-photo,
+  .large-text .print-large .print-photo {
+    max-height: 26vh;
+  }
+  .print-large figcaption {
+    padding: 6px 8px 8px;
+  }
+  .money-photo,
+  .large-text .money-photo {
+    height: min(14vh, 110px);
+  }
+  .puzzle-original {
+    max-width: 150px;
+  }
+  .photo-question {
+    gap: 12px;
+  }
+  .named-photo figcaption {
+    margin-top: 6px;
+  }
+}
+@media (max-width: 700px) {
+  /* « Voici Fernand » : le prénom est déjà dans le titre. */
+  .family-layout:not(.naming) .print-large figcaption {
+    display: none;
+  }
+  .family-layout:not(.naming) .print-large {
+    padding-bottom: 8px;
+  }
+  .photo-question .big-photo,
+  .large-text .photo-question .big-photo,
+  .photo-question.relative .big-photo,
+  .large-text .photo-question.relative .big-photo {
+    height: min(22vh, 200px);
+  }
+  .puzzle-original {
+    max-width: 110px;
+  }
+}
+@media (max-width: 700px) {
+  /* Jusqu'à dix points sur une ligne, sans toucher « Pause ». */
+  .progress {
+    flex-wrap: nowrap;
+    gap: 6px;
+    min-width: 0;
+  }
+  .progress span {
+    width: 14px;
+    height: 14px;
+    border-width: 2px;
+  }
+  .progress span.is-now {
+    width: 20px;
+    height: 20px;
+  }
+  .play-heading .back {
+    flex-shrink: 0;
+  }
+  /* Accueil : le bouton principal dans le premier écran. */
+  #featured-text {
+    display: none;
+  }
+  .featured-image,
+  .featured-image:has(img.whole) {
+    height: 210px;
+  }
+  .large-text .featured-image,
+  .large-text .featured-image:has(img.whole) {
+    height: 190px;
+  }
+  .welcome {
+    margin: 4px 0 16px;
+  }
+  .featured-content {
+    padding: 14px 18px 18px;
+  }
+  .featured-content h2 {
+    margin-bottom: 10px;
+  }
+}
+@media (max-width: 700px) {
+  .large-text .featured-image,
+  .large-text .featured-image:has(img.whole) {
+    height: 156px;
+  }
+}
+@media (max-width: 700px) {
+  /* Libellés des aides : jamais sous 24 px, jamais plus larges que le bouton. */
+  .tool,
+  .large-text .tool {
+    font-size: max(24px, calc(var(--font-size-base) - 6px));
   }
 }

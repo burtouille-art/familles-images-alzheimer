@@ -51,7 +51,7 @@ Placer un JPG dans `assets/photos/`, ajouter ses métadonnées à `games/data.js
 
 | Jeu | Ce que l’on fait ensemble | Léger / modéré / avancé |
 |---|---|---|
-| **Ma famille** | Uniquement les photos de la famille : les 54 photos intégrées et celles ajoutées dans « Proches ». Une photo importée avec le même identifiant remplace la version intégrée (pour corriger un prénom). Trois moments qui alternent : « Voici Delphine » (regarder, en parler), « Montrez-moi Delphine » (désigner parmi des photos **légendées** : le prénom est toujours écrit), « Les doubles » (réunir deux photos identiques, toutes visibles). On ne demande jamais « Qui est-ce ? » | 10 / 6 / 3 moments ; 4 / 3 / 2 photos ; photos affichées entières, comme des tirages |
+| **Ma famille** | Uniquement les photos de la famille : les 54 photos intégrées et celles ajoutées dans « Proches ». Une photo importée avec le même identifiant remplace la version intégrée (pour corriger un prénom). Quatre moments qui alternent : « Voici Delphine » (regarder, en parler), **« Retrouvons son prénom »** (voir ci-dessous), « Montrez-moi Delphine » (désigner parmi des photos **légendées**), « Les doubles » (réunir deux photos identiques, toutes visibles) | 10 / 6 / 3 moments ; 3 / 3 / 2 prénoms ; photos affichées entières, comme des tirages |
 | **Le mot juste** | Nommer un objet familier. Réponse dite à voix haute (validée par le proche), montrée du doigt ou touchée parmi des propositions | 10 / 6 / 3 photos ; propositions à la demande (4 / 3), d’emblée 2 au profil avancé |
 | **Ça sert à quoi ?** | Associer une photo nommée à sa famille, son usage ou l’endroit où on la trouve | 4 / 3 / 2 propositions ; toucher ou glisser-déposer |
 | **Une consigne à la fois** | Suivre de courtes consignes dans une scène du quotidien (six scènes : petit-déjeuner, sortir, marché, s’habiller pour l’hiver, soupe de légumes, salade de fruits) | 4 / 3 / 2 consignes et autant de photos ; une seule action par consigne |
@@ -68,6 +68,18 @@ Placer un JPG dans `assets/photos/`, ajouter ses métadonnées à `games/data.js
 | **La photo à réunir** | Recomposer une photo, modèle visible | 9 / 6 / 2 pièces |
 
 Les identifiants techniques des jeux n’ont pas changé : historique et adaptations des versions précédentes sont conservés.
+
+### « Retrouvons son prénom » (Ma famille)
+
+La personne retrouve le prénom d’un proche sur une photo. Le moment s’inspire de l’apprentissage **sans erreur** et des **indices évanescents** utilisés pour les associations visage-prénom dans la maladie d’Alzheimer débutante [10, 11], et de la **récupération espacée** [12] : le prénom demandé est souvent celui d’une personne vue juste avant (« Voici Delphine »), sur une autre photo.
+
+- **Léger** : on cherche d’abord sans propositions (dire le prénom à voix haute, l’aidant valide). Indices un à un : première lettre (« D… »), début du prénom (« Delp… »), trois prénoms au choix, deux, puis le prénom mis en évidence.
+- **Modéré** : trois prénoms d’emblée ; mêmes indices.
+- **Avancé** : début du prénom écrit et deux prénoms seulement.
+- Les autres prénoms proposés ne commencent pas par la même lettre : l’indice suffit à trouver. Un prénom qui ne va pas disparaît, et l’indice suivant s’affiche tout seul (« Ce n’est pas Denis sur cette photo. Le prénom commence par « Del… » »).
+- **Chaque essai se termine sur le bon prénom**, écrit sous la photo, même avec « Passer » ou si l’aidant le dit. Pas de « faux », pas de score.
+- Les libellés de groupe (« Frère et sœur ») ne sont jamais demandés ; pour « Maman », la question devient « Qui est sur la photo ? ».
+- L’aidant peut désactiver ce moment (**Espace aidant → Profil**) si chercher les prénoms met la personne en difficulté : « Ma famille » redevient alors regarder, montrer et réunir.
 
 ### La base de photos
 
@@ -86,7 +98,7 @@ Les sources de photos libres classiques (Pexels, Wikimedia Commons) n’étaient
 5. **Deux propositions** à toucher.
 6. **Modèle** : le mot est donné et la bonne proposition mise en évidence, pour le dire ou le toucher ensemble.
 
-Un choix erroné disparaît et l’aide suivante s’affiche : la personne n’est pas laissée face à l’erreur. Pour une photo personnelle, les champs « Où la voit-on ? » et « À quoi sert-elle, ou qui est-ce ? » remplis par l’aidant deviennent les aides 1 et 2. Aucune reconnaissance vocale : c’est le proche qui valide une réponse dite ou montrée (« Le nom a été dit ou montré »), y compris un mot approchant.
+Un choix erroné disparaît et l’aide suivante s’affiche : la personne n’est pas laissée face à l’erreur. Pour une photo personnelle, les champs « Où la voit-on ? » et « À quoi sert-elle, ou qui est-ce ? » remplis par l’aidant deviennent les aides 1 et 2. Aucune reconnaissance vocale : c’est l’aidant qui valide une réponse dite ou montrée (« Le nom a été dit ou montré »), y compris un mot approchant.
 
 Les propositions évitent les libellés ambigus (deux noms partageant un mot important), la frontière fruit / légume et les lieux qui se recouvrent (« dans la cuisine » / « dans la corbeille de fruits »). Les distracteurs de même famille ne sont utilisés qu’au profil léger sans aide supplémentaire.
 
@@ -95,7 +107,7 @@ Les propositions évitent les libellés ambigus (deux noms partageant un mot imp
 Le profil reste celui choisi par l’aidant. Deux étapes avec une difficulté ou une aide augmentent le soutien ; trois réussites sans aide le ramènent au niveau initial. Le soutien réduit le nombre de propositions, affiche d’emblée deux choix et le contexte familier, et allège paires, pièces et éléments. **L’application n’augmente jamais les exigences au-delà du profil choisi et ne déduit aucun stade de la maladie.** Les erreurs et aides ne sont ni affichées comme un score ni conservées.
 
 - **Pause** à tout moment (bouton ou touche Échap) : l’activité reste exactement où elle était. Depuis la pause : reprendre, **s’arrêter ici pour aujourd’hui** (la séance compte comme réalisée, sans obligation de finir) ou choisir une autre activité.
-- **Conseil au proche** dans chaque jeu (bouton « Proche ») : reformuler, montrer, répondre avec la personne. Affiché d’office au profil avancé ou si l’aidant le demande.
+- **Conseil pour l’aidant** dans chaque jeu : reformuler, montrer, répondre avec la personne. Affiché d’office au profil avancé ou si l’aidant le demande.
 - Retours sobres et adultes (« Oui, c’est bien cela. », « Regardons ensemble. ») ; ni « faux », ni score, ni classement, ni chronomètre. Essais et indices sans limite.
 - Écran de fin centré sur le repos (« Revenir à l’accueil ») plutôt que sur l’envie de rejouer.
 - Lecture vocale facultative (bouton « Lire », ou lecture automatique dans l’espace aidant) ; la consigne reste toujours écrite.
@@ -127,6 +139,9 @@ Les tests cliniques (BNT, MMSE, 5 mots, Figure de Rey…) ne sont ni reproduits 
 7. **Folder N et al. (2024)**. Effectiveness and characteristics of communication partner training programs for families of people with dementia. *The Gerontologist*, 64(4), gnad095 : 30 études. [Article](https://academic.oup.com/gerontologist/article/64/4/gnad095/7223749).
 8. **Eggenberger E, Heimerl K, Bennett MI (2013)**. Communication skills training in dementia care. *International Psychogeriatrics*. [PubMed 23116547](https://pubmed.ncbi.nlm.nih.gov/23116547/).
 9. **NICE NG97**, recommandations 1.4.3 (stimulation cognitive **en groupe**, démence légère à modérée), 1.4.4 (réminiscence en groupe) et 1.4.6 (ne pas proposer d’entraînement cognitif pour traiter une maladie d’Alzheimer légère à modérée), numérotation vérifiée le 6 octobre 2026. [Recommandations](https://www.nice.org.uk/guidance/ng97/chapter/Recommendations).
+10. **Clare L, Wilson BA, Breen K, Hodges JR (1999)**. Errorless learning of face–name associations in early Alzheimer’s disease. *Neurocase*, 5(1), 37–46. [Notice](https://www.researchgate.net/publication/316238744_Errorless_Learning_of_Face-Name_Associations_in_Early_Alzheimer's_Disease).
+11. **Clare L, Wilson BA, Carter G et al. (2000)**. Intervening with everyday memory problems in dementia of Alzheimer type: an errorless learning approach. *Journal of Clinical and Experimental Neuropsychology*, 22(1), 132–146. [Notice](https://www.researchgate.net/publication/316238791_Intervening_with_Everyday_Memory_Problems_in_Dementia_of_Alzheimer_Type_An_Errorless_Learning_Approach).
+12. **Hopper T et al. (2005)**. Evidence-based practice recommendations for working with individuals with dementia: spaced-retrieval training. *Journal of Medical Speech-Language Pathology*, 13(4). [Synthèse ASHA](https://apps.asha.org/EvidenceMaps/Articles/ArticleSummary/d1982e30-ffe9-42d4-bbef-880b2a299df9).
 
 ## Ergonomie (version 3)
 
@@ -134,20 +149,35 @@ Repères pensés pour une personne vivant avec une maladie d’Alzheimer, du sta
 
 - **Accueil qui oriente** : « Bonjour » ou « Bonsoir » selon l’heure, avec le prénom si l’aidant l’a indiqué, et la date du jour en toutes lettres. Une seule proposition mise en avant (une photo personnelle si possible), puis les activités.
 - **Cartes entières cliquables** : toute la carte (photo, titre, phrase) est un seul grand bouton. L’accueil montre la **séance préparée** par l’aidant (deux à six activités choisies dans l’espace aidant). Sans choix, au profil avancé, cinq activités douces d’abord (Une photo, un souvenir ; Ce qui me plaît ; Les expressions de toujours ; Oui ou non ? ; Le mot juste), les autres sur demande.
-- **Un écran de jeu toujours construit pareil** : en haut « Arrêter », le nom de l’activité et la progression en points (pas de compteur) ; puis la consigne ; puis la photo et les réponses.
-- **Le dock**, fixé en bas de l’écran : le retour sur la réponse, le grand bouton « Continuer tranquillement », puis Indice, Lire et Pause. Ils sont toujours au même endroit et restent visibles sans défiler.
+- **Un écran de jeu toujours construit pareil** : en haut « Pause » et la progression en points (pas de compteur) ; puis la consigne ; puis la photo, les réponses et le message de retour juste dessous.
+- **Le bas de l’écran**, fixé : trois aides toujours aux mêmes places (Indice, Lire, Passer). Une fois la réponse donnée, il ne reste qu’un grand bouton « Continuer ».
 - **Bonne réponse marquée par une coche, une bordure et un texte**, jamais par la couleur seule. Les propositions écartées restent lisibles (contraste conservé).
-- **Garde contre les touchers involontaires** : pendant 0,35 s après l’affichage d’une étape, un toucher n’est pas pris en compte, pour éviter qu’un double toucher ou un tremblement réponde à la question suivante.
-- **Pendant un jeu, pas d’accès direct à l’espace aidant** ni de pied de page : moins de distractions et pas de sortie par erreur. « Arrêter » ouvre la pause.
+- **Garde contre les touchers involontaires** : pendant 0,45 s après l’affichage d’une étape, et 0,7 s après l’apparition de « Continuer » (qui arrive sous le doigt), un toucher n’est pas pris en compte.
+- **Pendant un jeu, pas d’accès direct à l’espace aidant** ni de pied de page : moins de distractions et pas de sortie par erreur. Le bouton **retour du téléphone ouvre la pause** au lieu de quitter l’application.
 - **Conseils au proche placés sous le jeu**, pour que la photo reste la première chose vue.
 - **Proposition de pause après 20 minutes**, une seule fois, désactivable. Aucun mécanisme n’incite à continuer.
 - **Police Atkinson Hyperlegible** (Braille Institute, licence SIL OFL 1.1), conçue pour distinguer les lettres semblables ; intégrée à l’application et disponible hors connexion. Pas d’italique ni de majuscules continues.
 - **Contraste renforcé** (noir sur blanc, bordures épaisses) en option ; espaces insécables devant « ? » et « ! » pour éviter un signe isolé en début de ligne.
-- **Espace aidant en cinq sections** numérotées, avec une navigation par onglets : profil, affichage et sons, photos, sauvegarde, conseils.
+- **Espace aidant** en sections avec une navigation par onglets dans le même ordre que la page : profil, séance, affichage et sons, photos, expressions, sauvegarde, conseils. Suppression d’une photo et remise à zéro des aides confirmées par un second toucher.
+
+### Version 5.4 : audit ergonomique (7 octobre 2026)
+
+Mesuré dans Chromium sur téléphone 320 × 640, 360 × 740 (polices 24, 28 et 32 px), tablette, ordinateur et téléphone couché :
+
+- Sur téléphone, en jeu, l’en-tête disparaît ; le titre se fait plus compact ; les photos sont réduites pour que **les réponses tiennent dans le premier écran** au profil modéré.
+- Le message de retour suit la réponse dans la page et défile juste assez pour rester visible ; le bas de l’écran passe de 300 à 500 px après une réponse à moins de 100 px.
+- Une seule commande de pause (« Arrêter », « Pause » et le logo faisaient la même chose) ; « Autre » devient « Passer » ; grille d’aides fixe ; libellés jamais coupés au milieu d’un mot.
+- Téléphone couché : la page descend jusqu’à « Continuer ».
+- Accueil : le prénom est écrit sous la photo de famille (« Voici … ») ; le bouton principal est visible sans défiler ; au profil avancé, l’activité mise en avant n’est pas répétée dans la liste.
+- Fin d’activité : « Revenir à l’accueil » d’abord, la note de l’aidant repliée.
+- Volume de la voix et des sons réglable (doux, moyen, fort), fort par défaut.
+- Vocabulaire : « Pour l’aidant » partout ; les catégories sont des « groupes » (« Chacun son groupe », « Dans quel groupe ? »), pour ne pas les confondre avec « Ma famille ».
+- « Les photos jumelles » : une photo par groupe d’abord, jamais deux objets qui se ressemblent (deux vestes, deux chaussures).
+- Bordures des cartes et des réponses à 3,3:1 ; la bonne réponse est annoncée au lecteur d’écran ; une mise à jour de l’application attend le retour à l’accueil au lieu de recharger en pleine activité.
 
 ## Les photos de la famille
 
-Les photos de proches **ne sont jamais publiées** dans ce dépôt public. Elles sont préparées à part (recadrage sur le visage, retrait des bandes, agrandissement fidèle par super-résolution EDSR/FSRCNN, sans retouche générative du visage, éclaircissement doux) et réunies dans un fichier privé à importer sur l’appareil : **Espace aidant → Sauvegarde → Restaurer une sauvegarde**, ou directement depuis l’activité « Ma famille ». Le prénom vient du nom de fichier ; il se modifie dans l’espace aidant. Avec des photos de famille, l’accueil propose d’abord « Ma famille ».
+Depuis la version 5.3, 54 photos de la famille sont intégrées à l’application à la demande de la famille (voir « Mettre en ligne »). D’autres photos de proches peuvent toujours être ajoutées sur l’appareil seulement. Elles ont été préparées à part (recadrage sur le visage, retrait des bandes, agrandissement fidèle par super-résolution EDSR/FSRCNN, sans retouche générative du visage, éclaircissement doux) et réunies dans un fichier privé à importer sur l’appareil : **Espace aidant → Sauvegarde → Restaurer une sauvegarde**, ou directement depuis l’activité « Ma famille ». Le prénom vient du nom de fichier ; il se modifie dans l’espace aidant. Avec des photos de famille, l’accueil propose d’abord « Ma famille ».
 
 ## Version 5 : corrections issues de l’audit du 6 octobre 2026
 
@@ -157,7 +187,7 @@ Les photos de proches **ne sont jamais publiées** dans ce dépôt public. Elles
 - **« Lire »** lit la consigne, la légende ou le proverbe, puis les réponses proposées.
 - **Une seule aide affichée à la fois** dans « Le mot juste » ; les précédentes restent consultables (« Revoir les aides précédentes »).
 - **« Autre »** (photo suivante) dans toutes les activités à étapes, pour passer sans répondre.
-- **Photos de proches** : jamais à nommer, jamais découpées en puzzle ni utilisées comme cartes de memory ; présentées avec leur prénom dans « Une photo, un souvenir ».
+- **Photos de proches** : réservées à « Ma famille » ; jamais dans « Le mot juste », jamais découpées en puzzle ni utilisées comme cartes de memory.
 - **Pièce de 1 €** isolée par détourage (la pile de pièces de l’arrière-plan a été retirée) ; dans « À l’écoute », aucun paysage parmi les autres propositions (un bruit d’eau irait avec une plage comme avec un lac).
 - « Ça va ensemble » : le bonnet n’est plus un distracteur du chapeau.
 - **Expressions de la famille** saisies par l’aidant (« début | fin »), proposées en premier. Correction : il manquait une espace dans la phrase complétée (« fait sonnid »).
@@ -192,9 +222,9 @@ npm test
 python3 scripts/build-cache.py
 ```
 
-113 tests automatisés (Node + jsdom) : règles des profils, ordre des aides, indices phonologiques, absence de propositions ambiguës, consignes courtes, lieux sans recouvrement, noms qui se recouvrent (un jean est un pantalon), associations, proverbes, questions oui/non sans ambiguïté, migration des réglages, argent, puzzles, médias, contrastes, cache, et parcours complets des quinze activités dans les trois profils, avec et sans soutien supplémentaire, en vérifiant l’absence de vocabulaire d’échec. Un parcours de l’application assemblée vérifie la migration, la pause, la reprise et l’arrêt anticipé. Après toute modification des médias ou du code, régénérer le cache. Tester également sur téléphone réel, clavier, zoom, avec un aidant et sans connexion ; une simulation DOM ne remplace pas une évaluation d’accessibilité ni une validation clinique.
+115 tests automatisés (Node + jsdom) : règles des profils, ordre des aides, indices phonologiques, absence de propositions ambiguës, consignes courtes, lieux sans recouvrement, noms qui se recouvrent (un jean est un pantalon), associations, proverbes, questions oui/non sans ambiguïté, migration des réglages, argent, puzzles, médias, contrastes, cache, et parcours complets des quinze activités dans les trois profils, avec et sans soutien supplémentaire, en vérifiant l’absence de vocabulaire d’échec. Un parcours de l’application assemblée vérifie la migration, la pause, la reprise et l’arrêt anticipé. Après toute modification des médias ou du code, régénérer le cache. Tester également sur téléphone réel, clavier, zoom, avec un aidant et sans connexion ; une simulation DOM ne remplace pas une évaluation d’accessibilité ni une validation clinique.
 
-Vérifié aussi dans Chromium (Playwright), téléphone 320, 360 et 390 px de large et ordinateur 1366 px, polices 24 et 32 px : les quatorze activités terminées dans les trois profils (42 parcours par format d’écran), pause puis reprise identique, absence de débordement horizontal, commandes ≥ 60 × 60 px, texte ≥ 24 px, photos chargées, navigation au clavier et Échap ; import d’une photo et d’un son personnels, priorité dans les jeux, export puis restauration après effacement, sauvegarde version 1 ; mode hors connexion après le premier chargement (82 ressources en cache : photos, sons et police).
+Vérifié aussi dans Chromium (Playwright), téléphone 320, 360 et 390 px de large et ordinateur 1366 px, polices 24 et 32 px : les quatorze activités terminées dans les trois profils (42 parcours par format d’écran), pause puis reprise identique, absence de débordement horizontal, commandes ≥ 60 × 60 px, texte ≥ 24 px, photos chargées, navigation au clavier et Échap ; import d’une photo et d’un son personnels, priorité dans les jeux, export puis restauration après effacement, sauvegarde version 1 ; mode hors connexion après le premier chargement (139 ressources en cache : photos, photos de famille, sons et police).
 
 **Reste à vérifier :** un essai sur téléphone Android réel (installation, son, lecture vocale), avec TalkBack, et surtout avec des personnes concernées, leurs proches et un·e orthophoniste. La pertinence des photos de démonstration et des formulations doit être relue par un professionnel.
 

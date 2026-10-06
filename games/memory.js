@@ -1,9 +1,29 @@
-import { shuffle, button, image } from "./core.js";
+import { shuffle, button, image, confusable } from "./core.js";
+// Des photos bien différentes : jamais deux vestes sombres ou deux chaussures
+// qui se ressemblent dans la même partie.
+export function distinctPhotos(pool, n) {
+  const picked = [];
+  const clash = (p, q) =>
+    (p.near || []).includes(q.id) ||
+    (q.near || []).includes(p.id) ||
+    confusable(p.name, q.name);
+  // D'abord une photo par groupe (fruits, vêtements…), puis on complète.
+  for (const pass of [true, false])
+    for (const p of pool) {
+      if (picked.length >= n) break;
+      if (picked.includes(p)) continue;
+      if (pass && picked.some((q) => q.category === p.category)) continue;
+      if (picked.some((q) => clash(p, q))) continue;
+      picked.push(p);
+    }
+  return picked;
+}
 export default function memory(ctx) {
   // Objets et paysages d'abord ; pas de visages de proches découpés en cartes.
-  const photos = ctx
-    .prioritize(ctx.photos.filter((p) => p.category !== "Proches"))
-    .slice(0, ctx.rules.pairs);
+  const photos = distinctPhotos(
+    ctx.prioritize(ctx.photos.filter((p) => p.category !== "Proches")),
+    ctx.rules.pairs,
+  );
   // « Doubles à vue » aux profils modéré et avancé : les photos restent
   // visibles ; les cacher est un choix, jamais une obligation.
   const visible = ctx.stage !== "leger";

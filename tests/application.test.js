@@ -103,14 +103,21 @@ test("Application assemblée : migration, aidant, profil avancé, pause, reprise
   // Profil avancé : quatre activités douces d'abord, les autres sur demande.
   const visibleCards = () =>
     [...document.querySelectorAll(".card-cell")].filter((c) => !c.hidden);
-  assert.equal(visibleCards().length, 5);
+  // L'activité mise en avant (« Ma famille ») n'est pas proposée deux fois.
+  assert.equal(visibleCards().length, 4);
+  assert.ok(
+    visibleCards().every((c) => c.dataset.game !== "family"),
+    "pas de doublon avec la photo d'accueil",
+  );
+  assert.match(
+    document.getElementById("featured-caption").textContent,
+    /^Voici \S/,
+  );
   assert.equal(document.getElementById("show-all").hidden, false);
   assert.match(document.getElementById("today").textContent, /^Nous sommes /);
   document.getElementById("show-all").click();
   assert.equal(visibleCards().length, 15);
-  document
-    .querySelector('.game-card[aria-label="Jouer à Le mot juste"]')
-    .click();
+  document.querySelector('.game-card[data-game="recognition"]').click();
   // Pendant le jeu, pas d'accès direct à l'espace aidant.
   assert.ok(document.body.classList.contains("in-game"));
   assert.equal(document.querySelectorAll("#game-progress span").length, 3);
@@ -126,6 +133,15 @@ test("Application assemblée : migration, aidant, profil avancé, pause, reprise
   document.getElementById("hint").click();
   assert.notEqual(document.getElementById("feedback").textContent, firstHint);
   assert.ok(document.querySelectorAll(".cue").length >= 2);
+
+  // Bouton « retour » du téléphone : la pause, jamais la sortie du jeu.
+  assert.equal(window.history.state?.app, true);
+  window.dispatchEvent(new window.PopStateEvent("popstate", { state: null }));
+  assert.equal(document.getElementById("pause-panel").hidden, false);
+  assert.equal(document.getElementById("play").hidden, false);
+  document.getElementById("pause-resume").click();
+  // Une aide à la fois, outils toujours à la même place.
+  assert.equal(document.querySelectorAll(".game-tools button").length, 3);
 
   // Pause puis reprise : la même étape est retrouvée.
   const before = document.getElementById("game-body").innerHTML;
@@ -159,7 +175,10 @@ test("Application assemblée : migration, aidant, profil avancé, pause, reprise
   // L'accueil propose d'abord « Ma famille », avec les photos intégrées :
   // rien à installer, et le prénom est toujours donné.
   document.getElementById("done-home").click();
-  assert.equal(document.getElementById("featured-title").textContent, "Ma famille");
+  assert.equal(
+    document.getElementById("featured-title").textContent,
+    "Ma famille",
+  );
   assert.match(
     document.getElementById("featured-photo").getAttribute("src"),
     /^assets\/famille\/f\d\d\.jpg$/,
@@ -179,13 +198,13 @@ test("Application assemblée : migration, aidant, profil avancé, pause, reprise
   document.getElementById("show-all").click();
   document.querySelector('.game-card[data-game="recall"]').click();
   [...document.querySelectorAll("#game-body button")]
-    .find((b) => b.textContent === "Je suis prêt à les retrouver")
+    .find((b) => b.textContent === "Retrouver les photos")
     .click();
   [...document.querySelectorAll("#game-body button")]
     .find((b) => b.textContent === "Revoir le panier")
     .click();
   [...document.querySelectorAll("#game-body button")]
-    .find((b) => b.textContent === "Je suis prêt à les retrouver")
+    .find((b) => b.textContent === "Retrouver les photos")
     .click();
   document.querySelector('#game-body button[data-correct="true"]').click();
   assert.equal(saved().adaptation["avance-recall"].streak, 0);

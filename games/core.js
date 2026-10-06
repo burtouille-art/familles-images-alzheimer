@@ -40,10 +40,10 @@ export const CATEGORIES = [
 ];
 // Forme au singulier, pour des consignes naturelles (« Touchez le fruit »).
 export const CATEGORY_ONE = {
-  Fruits: { a: "un fruit", the: "le fruit" },
-  Légumes: { a: "un légume", the: "le légume" },
-  Animaux: { a: "un animal", the: "l’animal" },
-  Vêtements: { a: "un vêtement", the: "le vêtement" },
+  Fruits: { a: "un fruit", the: "le fruit", many: "des fruits" },
+  Légumes: { a: "un légume", the: "le légume", many: "des légumes" },
+  Animaux: { a: "un animal", the: "l’animal", many: "des animaux" },
+  Vêtements: { a: "un vêtement", the: "le vêtement", many: "des vêtements" },
   Lieux: { a: "un lieu", the: "le lieu" },
   Objets: { a: "un objet du quotidien", the: "l’objet" },
   Nature: { a: "un élément de la nature", the: "la nature" },

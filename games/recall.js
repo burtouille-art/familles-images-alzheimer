@@ -8,7 +8,7 @@ export default function recall(ctx) {
   function study() {
     ctx.prepare(
       "Dans mon panier",
-      "Regardez ces photos. Dites leur nom et leur famille si vous en avez envie.",
+      "Regardez ces photos. Dites leur nom si vous en avez envie.",
     );
     const row = document.createElement("div");
     row.className = "photo-row";
@@ -22,7 +22,7 @@ export default function recall(ctx) {
     ctx.body.append(
       row,
       button(
-        "Je suis prêt à les retrouver",
+        "Retrouver les photos",
         () => (ctx.stage === "leger" ? interlude() : retrieve()),
         "primary",
       ),

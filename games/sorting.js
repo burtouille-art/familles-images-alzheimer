@@ -1,11 +1,19 @@
-import { image, choiceSet, button, CATEGORIES, PRAISE, lower } from "./core.js";
+import {
+  image,
+  choiceSet,
+  button,
+  CATEGORIES,
+  CATEGORY_ONE,
+  PRAISE,
+  lower,
+} from "./core.js";
 // « Ça sert à quoi ? » : associations sémantiques autour d'une photo nommée.
-// Trois questions possibles : la famille, l'usage, la place habituelle.
+// Trois questions possibles : le groupe, l'usage, la place habituelle.
 // Le nom est toujours écrit : on travaille l'association, pas la dénomination.
 const KINDS = {
   category: {
-    title: "Dans quelle famille ?",
-    ask: (p) => `${p.name} : quelle famille ?`,
+    title: "Dans quel groupe ?",
+    ask: (p) => `${p.name} : dans quel groupe ?`,
     answer: (p) => p.category,
     pool: () => CATEGORIES.filter((c) => !["Proches", "Nature"].includes(c)),
   },
@@ -83,7 +91,9 @@ export default function sorting(ctx) {
             round++;
             show();
           },
-          `${PRAISE[round % PRAISE.length]} ${p.name} : ${lower(correct)}.`,
+          kind === "category" && CATEGORY_ONE[correct]
+            ? `${PRAISE[round % PRAISE.length]} ${p.name}, c’est ${CATEGORY_ONE[correct].a}.`
+            : `${PRAISE[round % PRAISE.length]} ${p.name} : ${lower(correct)}.`,
         );
       } else {
         b.hidden = choices.querySelectorAll("button:not([hidden])").length > 2;
@@ -115,8 +125,10 @@ export default function sorting(ctx) {
         return kind === "category"
           ? p.function || p.context || "Pensons à ce que l’on en fait."
           : kind === "function"
-            ? p.context || `C’est dans la famille « ${p.category} ».`
-            : p.function || `C’est dans la famille « ${p.category} ».`;
+            ? p.context ||
+              `C’est ${CATEGORY_ONE[p.category]?.a ?? lower(p.category)}.`
+            : p.function ||
+              `C’est ${CATEGORY_ONE[p.category]?.a ?? lower(p.category)}.`;
       const wrong = [...choices.children].filter(
         (b) => b.dataset.correct === "false" && !b.hidden,
       );

@@ -376,7 +376,11 @@ test("Photos de famille intégrées : fichiers présents, sans prénom dans le n
   assert.equal(new Set(FAMILY.map((p) => p.id)).size, FAMILY.length);
   const sw = fs.readFileSync("sw.js", "utf8");
   for (const p of FAMILY) {
-    assert.match(p.src, /^assets\/famille\/f\d\d\.jpg$/, "nom de fichier neutre");
+    assert.match(
+      p.src,
+      /^assets\/famille\/f\d\d\.jpg$/,
+      "nom de fichier neutre",
+    );
     assert.ok(fs.existsSync(p.src), p.src);
     assert.ok(p.name.trim().length, "prénom affiché");
     assert.ok(sw.includes(p.src), `${p.src} disponible hors connexion`);

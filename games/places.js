@@ -66,7 +66,7 @@ export default function places(ctx) {
     if (p.personal && p.hint) {
       const memo = document.createElement("p");
       memo.className = "guide";
-      memo.textContent = `Pour le proche, un souvenir noté : ${p.hint}`;
+      memo.textContent = `Pour l’aidant, un souvenir noté : ${p.hint}`;
       side.append(memo);
     }
     const choices = document.createElement("div");

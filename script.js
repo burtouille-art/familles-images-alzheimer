@@ -52,6 +52,7 @@ let prefs = storage.loadPreferences(),
   audio = null,
   audioContext = null,
   installPrompt = null;
+let pendingReload = false;
 let hintHandler = null,
   skipHandler = null,
   hadHelp = false,
@@ -71,6 +72,14 @@ function showView(name) {
   stopAudio();
   speechSynthesisSafeCancel();
   views.forEach((id) => ($(id).hidden = id !== name));
+  // Bouton « retour » du téléphone : une entrée d'historique par écran, pour
+  // qu'il ouvre la pause (ou revienne à l'accueil) au lieu de quitter.
+  if (name !== "home" && window.history.state?.app !== true)
+    window.history.pushState({ app: true }, "");
+  $("brand").setAttribute(
+    "aria-label",
+    name === "play" ? "Pause" : "Accueil de MémoirePartage",
+  );
   document.body.classList.toggle("in-game", name === "play");
   if (name === "home") renderHome();
   if (name === "done") observationButtons();
@@ -92,6 +101,7 @@ function applyPreferences() {
   $("contrast").checked = prefs.contrast;
   $("rest").checked = prefs.rest;
   $("support-lock").checked = prefs.supportLock;
+  $("family-names").checked = prefs.familyNames;
   if (document.activeElement !== $("person-name"))
     $("person-name").value = prefs.name;
   $("sound").checked = prefs.sound;
@@ -120,7 +130,7 @@ function say(text, force = true) {
   const u = new SpeechSynthesisUtterance(text);
   u.lang = "fr-FR";
   u.rate = 0.85;
-  u.volume = 0.55;
+  u.volume = prefs.volume;
   u.onerror = () => {
     $("feedback").textContent =
       "La lecture vocale n’est pas disponible actuellement. Regardons la consigne affichée.";
@@ -140,7 +150,7 @@ function reward() {
         oscillator.frequency.setValueAtTime(523, audioContext.currentTime);
         gain.gain.setValueAtTime(0, audioContext.currentTime);
         gain.gain.linearRampToValueAtTime(
-          0.035,
+          0.12 * prefs.volume,
           audioContext.currentTime + 0.03,
         );
         gain.gain.exponentialRampToValueAtTime(
@@ -170,25 +180,65 @@ function markHelp() {
     mark("help");
   }
 }
-function setNext(handler, label = "Continuer tranquillement") {
+// « Continuer » : le seul bouton du bas une fois la réponse donnée. Il
+// apparaît là où le doigt vient de toucher : pendant 700 ms, un second
+// toucher (double toucher, tremblement) est ignoré.
+const ARMING = 700;
+function setNext(handler, label = "Continuer") {
   const area = $("next-area");
   area.replaceChildren();
+  document.body.classList.toggle("answered", Boolean(handler));
   if (handler) {
     const token = sessionToken;
-    area.append(
-      button(
-        label,
-        () => {
-          if (token !== sessionToken) return;
-          stopAudio();
-          handler();
-        },
-        "primary",
-      ),
+    const armedAt = performance.now() + ARMING;
+    const b = button(
+      label,
+      (e) => {
+        if (token !== sessionToken) return;
+        if (e.isTrusted && performance.now() < armedAt) return;
+        stopAudio();
+        handler();
+      },
+      "primary arming",
     );
+    area.append(b);
+    setTimeout(() => b.classList.remove("arming"), ARMING);
+    // Les outils aussi : pas de « Passer » involontaire juste après.
+    guardUntil = performance.now() + ARMING;
+    showFeedback();
   }
 }
+// Le message suit la réponse dans la page : on le fait apparaître à l'écran
+// sans masquer les réponses (défilement minimal).
+function showFeedback() {
+  const f = $("feedback");
+  if (!f.textContent || $("play").hidden) return;
+  (window.requestAnimationFrame || setTimeout)(() => {
+    const r = f.getBoundingClientRect();
+    const dock = $("dock").getBoundingClientRect();
+    // Bas de l'écran utile : le haut du bandeau fixé, sinon la fenêtre.
+    const fixed = window.getComputedStyle($("dock")).position === "sticky";
+    const limit = fixed
+      ? Math.min(dock.top, window.innerHeight)
+      : window.innerHeight;
+    let dy = 0;
+    if (r.bottom > limit - 12) dy = r.bottom - limit + 12;
+    // Jamais au point de faire sortir le début du message par le haut.
+    dy = Math.min(dy, r.top - 12);
+    if (r.top < 0) dy = r.top - 12;
+    if (dy) window.scrollBy?.(0, dy);
+    // Téléphone couché : le bas n'est pas fixé, on descend jusqu'à
+    // « Continuer » s'il est hors de l'écran.
+    if (!fixed) {
+      const n = $("next-area").getBoundingClientRect();
+      if (n.bottom > window.innerHeight)
+        window.scrollBy?.(0, n.bottom - window.innerHeight + 12);
+    }
+  });
+}
 function home() {
+  // Une nouvelle version attendait la fin de l'activité pour s'installer.
+  if (pendingReload) return location.reload();
   sessionToken++;
   active = null;
   // De retour à l'accueil, la séance préparée est de nouveau mise en avant.
@@ -226,7 +276,7 @@ function finishEarly() {
   sessionToken++;
   showView("done");
   $("done-message").textContent =
-    "Vous pouvez vous arrêter quand vous le souhaitez. Cette séance a été ajoutée aux moments partagés.";
+    "On peut s’arrêter quand on veut. Merci d’avoir pris ce temps ensemble.";
   $("done-title").focus();
 }
 function startGame(id) {
@@ -286,6 +336,7 @@ function startGame(id) {
       $("feedback").textContent = message;
       setNext(next);
     },
+    familyNames: prefs.familyNames,
     prepare(title, instruction, index, total) {
       stopAudio();
       speechSynthesisSafeCancel();
@@ -301,13 +352,14 @@ function startGame(id) {
       $("instruction").textContent = instruction;
       paintProgress(index, total);
       // Évite qu'un double toucher sur l'écran précédent ne réponde ici.
-      guardUntil = performance.now() + 350;
+      guardUntil = performance.now() + 450;
       lastPressed = null;
       offerRest();
       ctx.body.replaceChildren();
       $("feedback").textContent = "";
       setNext(null);
-      $("game-title").focus();
+      window.scrollTo({ top: 0, behavior: "instant" });
+      $("game-title").focus({ preventScroll: true });
       say(`${title}. ${instruction}`, false);
     },
     setHint(fn) {
@@ -345,8 +397,14 @@ function startGame(id) {
       $("feedback").textContent = "";
     },
     success(next, message) {
-      if (lastPressed?.classList.contains("choice"))
+      if (lastPressed?.classList.contains("choice")) {
         lastPressed.classList.add("chosen");
+        // La coche est aussi dite au lecteur d'écran.
+        const sr = document.createElement("span");
+        sr.className = "sr-only";
+        sr.textContent = " (bonne réponse)";
+        lastPressed.append(sr);
+      }
       if (!hadHelp && !hadDifficulty) mark("success");
       hadHelp = false;
       hadDifficulty = false;
@@ -362,13 +420,14 @@ function startGame(id) {
       if (!hadDifficulty) mark("difficulty");
       hadDifficulty = true;
       $("feedback").textContent = `Regardons ensemble. ${extra}`;
+      showFeedback();
     },
     async playAudio(src) {
       stopAudio();
       const token = sessionToken;
       const a = new Audio(src);
       audio = a;
-      a.volume = 0.35;
+      a.volume = 0.8 * prefs.volume;
       try {
         await a.play();
       } catch {
@@ -384,7 +443,7 @@ function startGame(id) {
       sessionToken++;
       showView("done");
       $("done-message").textContent =
-        "Cette séance a été ajoutée aux moments partagés.";
+        "Vous avez pris le temps de regarder et d’échanger.";
       $("done-title").focus();
     },
   };
@@ -437,11 +496,15 @@ $("game-body").addEventListener(
   },
   true,
 );
-$("hint").addEventListener("click", () => {
+$("hint").addEventListener("click", (e) => {
   if (!hintHandler) return;
+  if (e.isTrusted && performance.now() < guardUntil) return;
   markHelp();
   const message = hintHandler();
-  if (message) $("feedback").textContent = message;
+  if (message) {
+    $("feedback").textContent = message;
+    showFeedback();
+  }
 });
 // « Lire » : la consigne, puis ce qui est affiché au centre et les réponses.
 $("read").addEventListener("click", () => {
@@ -458,8 +521,9 @@ $("read").addEventListener("click", () => {
   if (labels.length) parts.push(`Les réponses : ${labels.join(", ")}`);
   say(parts.join(". "));
 });
-$("skip").addEventListener("click", () => {
+$("skip").addEventListener("click", (e) => {
   if (!skipHandler) return;
+  if (e.isTrusted && performance.now() < guardUntil) return;
   const fn = skipHandler;
   skipHandler = null;
   stopAudio();
@@ -471,7 +535,15 @@ $("brand").addEventListener("click", () =>
   !$("play").hidden && active ? openPause() : home(),
 );
 $("pause").addEventListener("click", openPause);
-$("back-home").addEventListener("click", openPause);
+// Retour du téléphone : en jeu, la pause ; ailleurs, l'accueil.
+window.addEventListener("popstate", () => {
+  if (!$("play").hidden && active) {
+    window.history.pushState({ app: true }, "");
+    if ($("pause-panel").hidden) openPause();
+    return;
+  }
+  if ($("home").hidden) home();
+});
 $("pause-resume").addEventListener("click", resume);
 $("pause-finish").addEventListener("click", finishEarly);
 $("tip-toggle").addEventListener("click", () => {
@@ -502,7 +574,6 @@ function buildHome() {
     card.type = "button";
     card.className = "game-card";
     card.dataset.game = g.id;
-    card.setAttribute("aria-label", `Jouer à ${g.title}`);
     card.innerHTML = `<img src="assets/photos/${g.cover}.jpg" alt="" loading="lazy" width="640" height="420"><span class="card-text"><span class="card-title">${g.title}</span><span>${g.description}</span><span class="go" aria-hidden="true">Commencer <svg class="icon"><use href="#i-arrow"/></svg></span></span>`;
     card.addEventListener("click", () => startGame(g.id));
     cell.append(card);
@@ -556,6 +627,13 @@ function renderHome() {
   $("featured-photo").alt = featured
     ? featured.name
     : "Un lac entouré de montagnes";
+  // Un visage montré sans son prénom peut mettre en difficulté : le prénom
+  // est toujours écrit sous la photo de l'accueil.
+  const isRelative = featured?.category === "Proches";
+  $("featured-caption").hidden = !isRelative;
+  $("featured-caption").textContent = isRelative
+    ? `Voici ${featured.name}`
+    : "";
   // La carte « Ma famille » montre une vraie photo de la famille.
   const relative = relatives[(dayIndex + 1) % (relatives.length || 1)];
   const cover = $("game-grid").querySelector(
@@ -574,7 +652,7 @@ function renderHome() {
     ? "Regarder les photos de la famille, et en parler ensemble."
     : "Regarder, en parler. Il n’y a pas de bonne réponse.";
   $("start-photo").firstChild.textContent = relative
-    ? "Voir les photos de famille "
+    ? "Voir les photos "
     : "Regarder cette photo ";
   const chosen = chosenGames();
   const all = GAMES.map((g) => g.id);
@@ -586,10 +664,15 @@ function renderHome() {
     ? [...chosen, ...base.filter((id) => !chosen.includes(id))]
     : base;
   const grid = $("game-grid");
+  // Profil avancé : l'activité mise en avant n'est pas proposée une seconde
+  // fois juste en dessous.
+  const lean = prefs.stage === "avance" && !showAll;
   for (const id of order) {
     const cell = grid.querySelector(`.card-cell[data-game="${id}"]`);
     grid.append(cell);
-    cell.hidden = Boolean(chosen) && !showAll && !chosen.includes(id);
+    cell.hidden =
+      (Boolean(chosen) && !showAll && !chosen.includes(id)) ||
+      (lean && id === featuredGame);
   }
   $("show-all").hidden = !chosen || showAll;
   $("activities-lead").textContent = prefs.favorites?.length
@@ -661,6 +744,35 @@ $("support-lock").addEventListener("change", (e) => {
   prefs.supportLock = e.target.checked;
   persist();
 });
+$("family-names").addEventListener("change", (e) => {
+  prefs.familyNames = e.target.checked;
+  persist();
+});
+// Action à confirmer d'un second toucher : pas de fenêtre système, et rien ne
+// se perd sur un toucher involontaire.
+function confirmStep(b, ask, run) {
+  const label = b.textContent;
+  let timer = 0;
+  b.addEventListener("click", (e) => {
+    if (b.dataset.confirm !== "1") {
+      e.stopImmediatePropagation();
+      b.dataset.confirm = "1";
+      b.textContent = ask;
+      b.classList.add("confirming");
+      timer = setTimeout(() => {
+        b.dataset.confirm = "";
+        b.textContent = label;
+        b.classList.remove("confirming");
+      }, 6000);
+      return;
+    }
+    clearTimeout(timer);
+    b.dataset.confirm = "";
+    b.textContent = label;
+    b.classList.remove("confirming");
+    run();
+  });
+}
 // Observation facultative du proche, ajoutée à la dernière séance.
 function observationButtons() {
   const wrap = $("observation-options");
@@ -692,7 +804,7 @@ function stageButtons() {
   wrap.replaceChildren();
   const details = {
     leger:
-      "Jusqu’à 10 étapes et 4 propositions. La personne joue, le proche accompagne si besoin.",
+      "Jusqu’à 10 étapes et 4 propositions. La personne joue, l’aidant accompagne si besoin.",
     modere: "Jusqu’à 6 étapes, 3 propositions et des aides pas à pas.",
     avance:
       "3 étapes au plus, 2 propositions, une action à la fois. Regarder, écouter et échanger ensemble.",
@@ -731,6 +843,24 @@ function fontButtons() {
     wrap.append(b);
   }
 }
+function volumeButtons() {
+  const wrap = $("volume-options");
+  wrap.replaceChildren();
+  for (const [v, label] of [
+    [0.5, "Doux"],
+    [0.75, "Moyen"],
+    [1, "Fort"],
+  ]) {
+    const b = button(label, () => {
+      prefs.volume = v;
+      persist();
+      volumeButtons();
+      say("Voici le volume choisi.");
+    });
+    b.setAttribute("aria-pressed", String(v === prefs.volume));
+    wrap.append(b);
+  }
+}
 for (const [id, key] of [
   ["sound", "sound"],
   ["vibration", "vibration"],
@@ -752,7 +882,7 @@ $("person-name").addEventListener("change", (e) => {
   prefs.name = e.target.value.replace(/[<>]/g, "").trim().slice(0, 40);
   persist();
 });
-$("reset-adaptation").addEventListener("click", () => {
+confirmStep($("reset-adaptation"), "Touchez encore pour confirmer", () => {
   prefs.adaptation = {};
   persist();
   $("settings-status").textContent =
@@ -780,6 +910,7 @@ async function settings() {
   showView("settings");
   stageButtons();
   fontButtons();
+  volumeButtons();
   favoriteButtons();
   sayingsField();
   applyPreferences();
@@ -873,22 +1004,19 @@ function renderPersonal() {
     });
     const save = button("Enregistrer cette photo", () => {}, "primary");
     save.type = "submit";
-    const remove = button(
-      "Supprimer cette photo",
-      async () => {
-        remove.disabled = true;
-        try {
-          await storage.deletePhoto(p.id);
-          await refreshPersonal();
-          renderPersonal();
-          $("upload-status").textContent = "Photo supprimée de cet appareil.";
-        } catch (e) {
-          status.textContent = e.message;
-          remove.disabled = false;
-        }
-      },
-      "quiet",
-    );
+    const remove = button("Supprimer cette photo", () => {}, "quiet");
+    confirmStep(remove, "Touchez encore pour supprimer", async () => {
+      remove.disabled = true;
+      try {
+        await storage.deletePhoto(p.id);
+        await refreshPersonal();
+        renderPersonal();
+        $("upload-status").textContent = "Photo supprimée de cet appareil.";
+      } catch (e) {
+        status.textContent = e.message;
+        remove.disabled = false;
+      }
+    });
     editor.querySelector(".editor-actions").append(save, remove);
     if (audioBlob) {
       editor.querySelector(".editor-actions").append(
@@ -1083,6 +1211,7 @@ async function importFile(file) {
     renderHistory();
     stageButtons();
     fontButtons();
+    volumeButtons();
     favoriteButtons();
     sayingsField();
     applyPreferences();
@@ -1138,7 +1267,9 @@ if ("serviceWorker" in navigator && location.protocol !== "file:") {
         navigator.serviceWorker.addEventListener("controllerchange", () => {
           if (reloaded) return;
           reloaded = true;
-          location.reload();
+          // Jamais en pleine activité : on attend le retour à l'accueil.
+          if ($("home").hidden) pendingReload = true;
+          else location.reload();
         });
       }
       initialRegistration.update?.().catch(() => {});

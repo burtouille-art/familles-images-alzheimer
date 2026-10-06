@@ -38,10 +38,10 @@ export default function odd(ctx) {
     } else {
       target = others[0];
       options = shuffle([...pick(category).slice(0, count - 1), target]);
-      instruction = `Toutes ces photos sauf une sont dans la famille « ${category} ». Laquelle vient d’une autre famille ?`;
+      instruction = `Toutes ces photos sauf une montrent ${one.many}. Laquelle est différente ?`;
     }
     let answered = false;
-    ctx.prepare("Chacun sa famille", instruction, round + 1, ctx.rules.rounds);
+    ctx.prepare("Chacun son groupe", instruction, round + 1, ctx.rules.rounds);
     const choices = document.createElement("div");
     choices.className = "choices";
     for (const p of options) {
@@ -55,13 +55,13 @@ export default function odd(ctx) {
               round++;
               show();
             },
-            `${PRAISE[round % PRAISE.length]} ${target.name} : ${CATEGORY_ONE[target.category].a}.`,
+            `${PRAISE[round % PRAISE.length]} ${target.name}, c’est ${CATEGORY_ONE[target.category].a}.`,
           );
         } else
           ctx.wrong(
             positive
               ? `${p.name}, c’est ${CATEGORY_ONE[p.category].a}. Cherchons ${one.a}.`
-              : `${p.name} est bien dans la famille « ${category} ». Regardons les autres.`,
+              : `${p.name}, c’est bien ${one.a}. Regardons les autres.`,
           );
       });
       b.dataset.correct = String(p.id === target.id);
@@ -78,7 +78,7 @@ export default function odd(ctx) {
       if (hints === 1)
         return positive
           ? `Cherchons ${one.a}. ${target.context || ""}`.trim()
-          : `${target.name} appartient à la famille « ${target.category} ».`;
+          : `${target.name}, c’est ${CATEGORY_ONE[target.category].a}.`;
       for (const b of choices.children)
         if (b.dataset.correct === "true") b.classList.add("suggested");
       return `C’est ${target.name.toLocaleLowerCase("fr")}.`;

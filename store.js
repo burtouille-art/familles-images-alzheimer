@@ -42,6 +42,8 @@ export const defaults = {
   rest: true,
   name: "",
   supportLock: false,
+  familyNames: true,
+  volume: 1,
   favorites: null,
   sayings: [],
   variants: {},
@@ -124,6 +126,10 @@ export function validatePreferences(raw = {}) {
           )
         : {},
     supportLock: raw.supportLock === true,
+    // « Ma famille » : retrouver les prénoms (désactivable par l'aidant).
+    familyNames: raw.familyNames !== false,
+    // Volume de la voix et des sons : doux, moyen, fort.
+    volume: [0.5, 0.75, 1].includes(raw.volume) ? raw.volume : 1,
     // Séance préparée : 1 à 6 activités choisies par l'aidant, ou null.
     favorites:
       Array.isArray(raw.favorites) && raw.favorites.length

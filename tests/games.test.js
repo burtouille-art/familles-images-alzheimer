@@ -307,7 +307,7 @@ const solvers = {
     const labels = [...ctx.body.querySelectorAll("figcaption")].map(
       (e) => e.textContent.split(" · ")[0],
     );
-    clickByText(ctx, "Je suis prêt à les retrouver");
+    clickByText(ctx, "Retrouver les photos");
     if (stage === "leger") clickByText(ctx, "Retrouver mon panier");
     for (const label of labels) {
       if (stage === "avance")
@@ -486,9 +486,8 @@ test("Le mot juste : jamais le prénom d'un proche parmi les propositions", () =
     }
 });
 
-test("Ma famille : regarder, montrer, réunir — toujours avec les prénoms écrits", () => {
-  const names = ["Delphine", "Quentin", "Angèle", "Denis"];
-  const relatives = names.flatMap((name, i) =>
+function relativesFor(names) {
+  return names.flatMap((name, i) =>
     [0, 1].map((k) => ({
       id: `custom-famille-${i}-${k}`,
       name,
@@ -500,37 +499,70 @@ test("Ma famille : regarder, montrer, réunir — toujours avec les prénoms éc
       ready: true,
     })),
   );
+}
+test("Ma famille : regarder, retrouver le prénom, montrer, réunir", () => {
+  const names = ["Delphine", "Quentin", "Angèle", "Denis", "Frère et sœur"];
+  const relatives = relativesFor(names);
   for (const stage of ["leger", "modere", "avance"]) {
     const ctx = create(stage);
     ctx.photos = [...relatives, ...PHOTOS];
     family(ctx);
     const seen = new Set();
-    for (let guard = 0; !ctx.completed && guard < 80; guard++) {
-      const title = document.querySelector("h1").textContent;
+    for (let guard = 0; !ctx.completed && guard < 120; guard++) {
+      const title = document
+        .querySelector("h1")
+        .textContent.replace(/\u2060/g, "");
       seen.add(title.split(" ")[0]);
-      // Aucun prénom à retrouver : chaque photo montrée porte son prénom.
-      for (const img of ctx.body.querySelectorAll("img")) {
-        const holder = img.closest("figure, button");
-        assert.ok(
-          names.some((n) => holder.textContent.includes(n)),
-          title,
-        );
+      assert.doesNotMatch(ctx.body.textContent, /qui est-ce/i);
+      // Un groupe (« Frère et sœur ») n'est jamais un prénom à chercher.
+      if (!title.startsWith("Voici"))
+        assert.doesNotMatch(title, /Frère et sœur/);
+      for (const img of ctx.body.querySelectorAll("img"))
         assert.ok(
           img.getAttribute("src").startsWith("blob:"),
           "uniquement des photos de famille",
         );
-      }
-      assert.doesNotMatch(ctx.body.textContent, /qui est-ce/i);
       if (ctx.next) {
         next(ctx);
         continue;
       }
       if (title.startsWith("Voici")) {
+        // Le prénom est écrit sous la photo.
+        assert.ok(names.some((n) => ctx.body.textContent.includes(n)));
         clickByText(ctx, "Parlons-en");
+      } else if (title.startsWith("Retrouvons")) {
+        const cap = ctx.body.querySelector(".name-cue");
+        const target = names.find(
+          (n) => !cap.textContent.includes(n) && n !== "Frère et sœur",
+        );
+        assert.ok(target);
+        // Avant la réponse, le prénom n'est pas écrit en entier.
+        assert.ok(!names.includes(cap.textContent));
+        if (stage === "leger") {
+          assert.equal(
+            ctx.body.querySelectorAll(".name-choices button").length,
+            0,
+            "léger : on cherche d'abord sans propositions",
+          );
+          clickByText(ctx, "Voir des prénoms");
+        }
+        if (stage === "avance") {
+          assert.equal(
+            ctx.body.querySelectorAll(".name-choices button").length,
+            2,
+          );
+          assert.match(cap.textContent, /…$/, "avancé : début du prénom donné");
+        }
+        const right = ctx.body.querySelector(
+          '.name-choices [data-correct="true"]',
+        );
+        right.click();
+        // Toujours finir sur le prénom, écrit sous la photo.
+        assert.ok(names.includes(cap.textContent));
+        assert.match(ctx.messages.at(-1), new RegExp(cap.textContent));
       } else if (title.startsWith("Montrez-moi")) {
         correctButton(ctx).click();
       } else {
-        // Les doubles : toucher les paires une à une.
         const cards = [
           ...ctx.body.querySelectorAll(".print-choice:not([disabled])"),
         ];
@@ -541,13 +573,70 @@ test("Ma famille : regarder, montrer, réunir — toujours avec les prénoms éc
       }
     }
     assert.ok(ctx.completed, stage);
-    assert.ok(seen.has("Voici"));
+    assert.ok(seen.has("Voici") && seen.has("Retrouvons"), stage);
     if (stage !== "avance")
       assert.ok(seen.has("Montrez-moi") && seen.has("Les"));
+    else assert.ok(seen.has("Les"), "avancé : « Les doubles » aussi");
   }
   // Sans photo de famille : une invitation à ajouter le fichier, pas un jeu vide.
   const ctx = create("modere");
   family(ctx);
   assert.match(document.querySelector("h1").textContent, /Ma famille/);
   assert.ok(ctx.body.querySelector('input[type="file"]'));
+});
+test("Ma famille : les indices mènent toujours au prénom, sans impasse", () => {
+  const names = ["Delphine", "Quentin", "Angèle", "Denis"];
+  for (const stage of ["leger", "modere", "avance"]) {
+    const ctx = create(stage);
+    ctx.photos = relativesFor(names);
+    family(ctx);
+    next(ctx.next ? ctx : (clickByText(ctx, "Parlons-en"), ctx));
+    assert.match(document.querySelector("h1").textContent, /Retrouvons/);
+    const cap = ctx.body.querySelector(".name-cue");
+    const cues = [];
+    for (let i = 0; i < 10 && !ctx.next; i++) {
+      ctx.hint();
+      cues.push(cap.textContent);
+    }
+    assert.ok(ctx.next, `${stage} : le prénom finit par être donné`);
+    assert.ok(names.includes(cap.textContent));
+    assert.ok(ctx.accepted >= 1, "aide reconnue, sans échec");
+    if (stage !== "avance")
+      assert.match(cues[0], /^\p{L}…$/u, "d'abord une lettre");
+  }
+  // Un mauvais prénom : il disparaît et l'indice suivant s'affiche.
+  const ctx = create("modere");
+  ctx.photos = relativesFor(names);
+  family(ctx);
+  clickByText(ctx, "Parlons-en");
+  next(ctx);
+  const wrong = ctx.body.querySelector('.name-choices [data-correct="false"]');
+  wrong.click();
+  assert.ok(wrong.hidden);
+  assert.match(ctx.messages.at(-1), /commence par « \p{L}… »/u);
+  assert.doesNotMatch(ctx.messages.at(-1), /faux|erreur/i);
+  // Réglage aidant : sans recherche de prénom.
+  const off = create("leger");
+  off.photos = relativesFor(names);
+  off.familyNames = false;
+  family(off);
+  for (let guard = 0; !off.completed && guard < 80; guard++) {
+    const title = document
+      .querySelector("h1")
+      .textContent.replace(/\u2060/g, "");
+    assert.doesNotMatch(title, /Retrouvons/);
+    if (off.next) next(off);
+    else if (title.startsWith("Voici")) clickByText(off, "Parlons-en");
+    else if (title.startsWith("Montrez-moi")) correctButton(off).click();
+    else {
+      const cards = [
+        ...off.body.querySelectorAll(".print-choice:not([disabled])"),
+      ];
+      cards[0].click();
+      cards
+        .find((c) => c !== cards[0] && c.dataset.id === cards[0].dataset.id)
+        .click();
+    }
+  }
+  assert.ok(off.completed);
 });

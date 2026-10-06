@@ -546,8 +546,8 @@ export const GAMES = [
   {
     id: "sorting",
     title: "Ça sert à quoi ?",
-    domain: "Associations · famille, usage, lieu",
-    description: "Relier une photo à sa famille, son usage ou sa place.",
+    domain: "Associations · groupe, usage, lieu",
+    description: "Relier une photo à son groupe, son usage ou sa place.",
     cover: "bouilloire",
   },
   {
@@ -587,9 +587,9 @@ export const GAMES = [
   },
   {
     id: "odd",
-    title: "Chacun sa famille",
+    title: "Chacun son groupe",
     domain: "Catégories · attention",
-    description: "Trouver la photo d’une famille donnée.",
+    description: "Trouver le fruit, l’animal ou le vêtement demandé.",
     cover: "brocoli",
   },
   {
