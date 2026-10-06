@@ -238,7 +238,26 @@ function empty(ctx) {
   box.className = "family-empty";
   const p = document.createElement("p");
   p.textContent =
-    "Pour le proche : ajoutez le fichier de photos de famille (par exemple « memoire-partage-photos-famille.json »), ou des photos rangées dans « Proches ». Elles restent uniquement sur cet appareil.";
+    "Pour le proche : entrez le code de la famille, ou ajoutez le fichier de photos. Les photos restent ensuite sur cet appareil, même sans connexion.";
+  const codeLabel = document.createElement("label");
+  codeLabel.className = "text-field";
+  codeLabel.textContent = "Code de la famille";
+  const code = document.createElement("input");
+  code.type = "text";
+  code.autocomplete = "off";
+  code.placeholder = "XXXX-XXXX-XXXX";
+  codeLabel.append(code);
+  const install = button(
+    "Installer les photos de la famille",
+    async () => {
+      install.disabled = true;
+      await ctx.installFamily?.(code.value);
+      install.disabled = false;
+    },
+    "primary",
+  );
+  const or = document.createElement("p");
+  or.textContent = "Ou bien, avec le fichier de photos :";
   const input = document.createElement("input");
   input.type = "file";
   input.id = "family-import";
@@ -250,7 +269,7 @@ function empty(ctx) {
   label.className = "primary upload-label";
   label.htmlFor = "family-import";
   label.textContent = "Ajouter le fichier de photos de famille";
-  box.append(p, input, label);
+  box.append(p, codeLabel, install, or, input, label);
   ctx.body.append(box);
   ctx.setHint(() => "Ce fichier vous a été envoyé avec l’application.");
   ctx.setCaregiverTip(

@@ -3,7 +3,7 @@ from pathlib import Path
 import hashlib,json
 
 root=Path(__file__).resolve().parents[1]
-paths=[root/name for name in ['index.html','style.css','script.js','store.js','manifest.webmanifest','README.md','LICENSE']]
+paths=[root/name for name in ['index.html','style.css','script.js','store.js','family-pack.js','manifest.webmanifest','README.md','LICENSE']]
 paths+=sorted((root/'games').glob('*.js'))
 paths+=sorted(p for p in (root/'assets').rglob('*') if p.is_file())
 digest=hashlib.sha256(b''.join(str(p.relative_to(root)).encode()+p.read_bytes() for p in paths)).hexdigest()[:12]

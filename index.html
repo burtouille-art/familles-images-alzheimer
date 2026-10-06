@@ -93,6 +93,7 @@
     <main id="main" tabindex="-1">
       <!-- Accueil : salutation, date du jour, une proposition, les activités. -->
       <section id="home" aria-labelledby="home-title">
+        <p id="family-status" class="family-status" role="status" hidden></p>
         <div class="welcome">
           <p class="today" id="today"></p>
           <h1 id="home-title"><span id="greeting">Bonjour</span></h1>
@@ -259,7 +260,7 @@
             >Revenir aux activités
           </button>
           <h1 id="settings-title" tabindex="-1">Espace aidant</h1>
-          <p class="version">Version 5.2 de l’application</p>
+          <p class="version">Version 5.3 de l’application</p>
           <p>
             Des réglages simples pour un moment agréable. Le profil est choisi
             par vous ; il n’est jamais déduit des réponses.
@@ -363,6 +364,28 @@
           />
           <p>Les fichiers restent dans ce navigateur, sur cet appareil.</p>
           <div id="upload-status" role="status" aria-live="polite"></div>
+          <div class="family-install">
+            <h3 class="family-install-title">Les photos de la famille</h3>
+            <p>
+              Elles sont publiées chiffrées : sans le code de la famille,
+              personne ne peut les voir. Entrez le code une fois ; les photos
+              restent ensuite sur cet appareil, même sans connexion.
+            </p>
+            <label class="text-field" for="family-code"
+              >Code de la famille
+              <input
+                id="family-code"
+                type="text"
+                autocomplete="off"
+                autocapitalize="characters"
+                spellcheck="false"
+                placeholder="XXXX-XXXX-XXXX"
+            /></label>
+            <button id="family-install" class="primary">
+              Installer les photos de la famille
+            </button>
+            <p id="family-install-status" role="status"></p>
+          </div>
           <div id="personal-photos" class="personal-list"></div>
         </section>
         <section

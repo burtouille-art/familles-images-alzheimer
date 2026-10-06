@@ -10,6 +10,7 @@ import {
   PRAISE,
 } from "./games/core.js";
 import * as storage from "./store.js";
+import { fetchFamily } from "./family-pack.js";
 import recognition from "./games/recognition.js";
 import memory from "./games/memory.js";
 import places from "./games/places.js";
@@ -331,6 +332,12 @@ function startGame(id) {
       ctx.success(next, message);
     },
     sayings: prefs.sayings,
+    // Installation des photos de la famille depuis le jeu, avec le code.
+    async installFamily(code) {
+      const message = await installFamily(code);
+      startGame(id);
+      $("feedback").textContent = message;
+    },
     // Ajout du fichier de photos depuis le jeu lui-même, puis redémarrage.
     async importFile(file) {
       const message = await importFile(file);
@@ -1004,6 +1011,40 @@ $("export-backup").addEventListener("click", async () => {
     status.textContent = e.message;
   }
 });
+// Photos de la famille chiffrées : déchiffrées avec le code, puis rangées
+// sur l'appareil. Une réinstallation remplace les photos, sans doublon.
+async function installFamily(code) {
+  try {
+    const photos = await fetchFamily(code);
+    await storage.putManyPhotos(photos);
+    await refreshPersonal();
+    if (!$("settings").hidden) renderPersonal();
+    if (!$("home").hidden) renderHome();
+    return `${photos.length} photos de la famille sont installées sur cet appareil. Elles restent disponibles sans connexion.`;
+  } catch (error) {
+    return error.message || "L’installation n’a pas abouti.";
+  }
+}
+$("family-install").addEventListener("click", async () => {
+  const b = $("family-install");
+  b.disabled = true;
+  $("family-install-status").textContent = "Installation en cours…";
+  $("family-install-status").textContent = await installFamily(
+    $("family-code").value,
+  );
+  b.disabled = false;
+});
+// Lien privé « …/#famille=CODE » : installation en un geste, puis le code
+// est retiré de l'adresse (il n'est ni conservé ni envoyé au serveur).
+async function installFromLink() {
+  const m = location.hash.match(/famille=([A-Za-z0-9-]+)/);
+  if (!m) return;
+  history.replaceState(null, "", location.pathname + location.search);
+  const status = $("family-status");
+  status.hidden = false;
+  status.textContent = "Installation des photos de la famille…";
+  status.textContent = await installFamily(m[1]);
+}
 // Restaurer une sauvegarde ou ajouter un pack de photos ; renvoie le message.
 async function importFile(file) {
   try {
@@ -1087,6 +1128,7 @@ refreshPersonal()
   .then(() => {
     if (!$("home").hidden) renderHome();
   })
+  .then(installFromLink)
   .catch(() => {
     /* Les photos de démonstration restent disponibles. */
   });

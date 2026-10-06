@@ -1608,3 +1608,23 @@ input[type="file"]:focus-visible + *,
     grid-template-columns: 1fr 1fr;
   }
 }
+.family-status {
+  background: var(--mint);
+  border-left: 8px solid var(--deep);
+  border-radius: var(--radius-small);
+  padding: 14px 18px;
+  font-weight: 700;
+  margin: 8px 0 0;
+}
+.family-install {
+  border-top: 1px solid var(--line);
+  margin-top: 24px;
+  padding-top: 20px;
+}
+.family-install-title {
+  margin-bottom: 8px;
+}
+#family-code {
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
